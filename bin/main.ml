@@ -1,1 +1,3 @@
-let () = print_endline "OCaml NATS client"
+let main () = print_endline "OCaml NATS client";;
+
+main ()
