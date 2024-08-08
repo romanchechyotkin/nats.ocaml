@@ -1,0 +1,4 @@
+(executable
+ (name test_client)
+ (modules test_client)
+ (libraries nats_ocaml.client))

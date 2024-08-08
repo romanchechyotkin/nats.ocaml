@@ -1,4 +1,0 @@
-(executable
- (public_name nats_ocaml)
- (name main)
- (libraries nats_ocaml))
