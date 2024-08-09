@@ -1,10 +1,10 @@
-open Client;;
+open Client
 
-let main () = 
-  let nats_client = Lwt_main.run (Client.connect "147.75.47.215" Client.default_port) in 
+let main () =
+  let nats_client = Client.connect "147.75.47.215" Client.default_port in
   print_endline (Client.url nats_client);
 
-  Client.close nats_client
+  (* Client.close nats_client *)
 ;;
 
-main()
+main ()
