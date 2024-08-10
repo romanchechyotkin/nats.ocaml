@@ -1,13 +1,19 @@
 open Client
+open Lwt.Syntax
 
 let main () =
-  let nats_client = Client.connect Client.default_host Client.default_port in
+  let host = Client.default_host in
+  let port = Client.default_port in
+  let* client = Client.connect host port in
 
-  Client.pub nats_client "FOO" None "HELLO NATS! withopuy reply";
-  Client.pub nats_client "FRONT.DOOR" (Some "JOKE.22") "Knock Knock";
-  Client.pub nats_client "NOTIFY " None "";
+  let* () = Client.sub client "FOO" in
+  let* () = Client.sub client "FRONT.*" in
+  let* () = Client.sub client "NOTIFY" in
 
-  Client.close nats_client
-;;
+  let* () = Client.pub client "FOO" None "HELLO NATS!" in
+  let* () = Client.pub client "FRONT.DOOR" None "HELLO NATS!" in
+  let* () = Client.pub client "NOTIFY" None "HELLO NATS!" in
 
-main ()
+  Client.close client
+
+let () = Lwt_main.run (main ())

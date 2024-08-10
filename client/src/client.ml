@@ -1,4 +1,4 @@
-open Lwt.Infix
+open Lwt.Syntax
 open Unix
 open Messages
 
@@ -7,12 +7,13 @@ module Client = struct
   let default_port : int = 4222
   let lang : string = "ocaml"
   let crlf : string = "\r\n"
+  let a = ref 1
 
   type 'a t = { sockaddr : sockaddr; socket : Lwt_unix.file_descr }
 
-  let handle_message file_descr =
+  let handle_reply file_descr =
     let buffer = Bytes.create 1024 in
-    Lwt_unix.recvfrom file_descr buffer 0 1024 [] >>= fun (num_bytes, _) ->
+    let* num_bytes = Lwt_unix.recv file_descr buffer 0 1024 [] in
     let message = Bytes.sub_string buffer 0 num_bytes in
     Lwt.return message
 
@@ -23,13 +24,15 @@ module Client = struct
           Printf.sprintf "%s %s%s" (Messages.string_of_mtype mtype) message crlf
       | Messages.PUB ->
           Printf.sprintf "%s %s" (Messages.string_of_mtype mtype) message
-      | _ -> ""
+      | Messages.SUB ->
+          Printf.sprintf "%s %s" (Messages.string_of_mtype mtype) message
+      | _ -> Printf.sprintf "%s%s" (Messages.string_of_mtype mtype) crlf
     in
     print_endline ("sending request: " ^ message);
     let msg : bytes = Bytes.of_string message in
     let l = String.length message in
-    Lwt_unix.sendto client.socket msg 0 l [] client.sockaddr >>= fun _ ->
-    handle_message client.socket
+    let* _ = Lwt_unix.sendto client.socket msg 0 l [] client.sockaddr in
+    handle_reply client.socket
 
   let init_connect (client : 'a t) =
     let connect_msg =
@@ -43,36 +46,30 @@ module Client = struct
             (* ("echo", `Bool true); *)
           ])
     in
-    send_message client CONNECT connect_msg >>= fun response ->
+    let* response = send_message client CONNECT connect_msg in
     Lwt.return response
 
   let connect host port =
-    let client =
-      Lwt_main.run
-        ((* Create a TCP socket *)
-         let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
+    (* Create a TCP socket *)
+    let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
 
-         (* Server details *)
-         let server_address = inet_addr_of_string host in
-         let server_port = port in
-         let server_socket_address = ADDR_INET (server_address, server_port) in
+    (* Server details *)
+    let server_address = inet_addr_of_string host in
+    let server_port = port in
+    let server_socket_address = ADDR_INET (server_address, server_port) in
 
-         Lwt_unix.connect socket_fd server_socket_address >>= fun _ ->
-         print_endline "connected to server";
-         handle_message socket_fd >>= fun msg ->
-         print_endline msg;
-
-         let client : 'a t =
-           { socket = socket_fd; sockaddr = server_socket_address }
-         in
-
-         (* Send CONNECT request *)
-         init_connect client >>= fun response ->
-         print_endline response;
-
-         Lwt.return client)
+    let client : 'a t =
+      { socket = socket_fd; sockaddr = server_socket_address }
     in
-    client
+
+    let* () = Lwt_unix.connect socket_fd server_socket_address in
+    print_endline "connected to server";
+
+    (* Send CONNECT request *)
+    let* response = init_connect client in
+    print_endline response;
+
+    Lwt.return client
 
   let pub client subject reply_to_subject payload =
     let msg =
@@ -86,10 +83,16 @@ module Client = struct
             (Bytes.length (Bytes.of_string payload))
             crlf payload crlf
     in
-    Lwt_main.run
-      ( send_message client Messages.PUB msg >>= fun response ->
-        print_endline response;
-        Lwt.return_unit )
+    let* response = send_message client Messages.PUB msg in
+    print_endline response;
+    Lwt.return_unit
+
+  let sub client subject =
+    a := !a + 1;
+    let msg = Printf.sprintf "%s %d%s" subject !a crlf in
+    let* response = send_message client Messages.SUB msg in
+    print_endline response;
+    Lwt.return_unit
 
   let close client =
     (* Close the socket *)
