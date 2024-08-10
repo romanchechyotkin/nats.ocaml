@@ -6,6 +6,6 @@ module Client : sig
   type 'a t
 
   val connect : string -> int -> 'a t
-  val pub : 'a t -> string -> string -> unit
+  val pub : 'a t -> string -> string option -> string -> unit
   val close : 'a t -> unit Lwt.t
 end

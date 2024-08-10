@@ -3,15 +3,12 @@ open Unix
 open Messages
 
 module Client = struct
-  let default_host : string = "nats://127.0.0.1"
+  let default_host : string = "127.0.0.1"
   let default_port : int = 4222
   let lang : string = "ocaml"
   let crlf : string = "\r\n"
 
-  type 'a t = {
-    sockaddr : sockaddr;
-    socket : Lwt_unix.file_descr;
-  }
+  type 'a t = { sockaddr : sockaddr; socket : Lwt_unix.file_descr }
 
   let handle_message file_descr =
     let buffer = Bytes.create 1024 in
@@ -24,23 +21,22 @@ module Client = struct
       match mtype with
       | Messages.CONNECT ->
           Printf.sprintf "%s %s%s" (Messages.string_of_mtype mtype) message crlf
-      | Messages.PUB -> Printf.sprintf "%s %s" (Messages.string_of_mtype mtype) message
+      | Messages.PUB ->
+          Printf.sprintf "%s %s" (Messages.string_of_mtype mtype) message
       | _ -> ""
     in
     print_endline ("sending request: " ^ message);
     let msg : bytes = Bytes.of_string message in
     let l = String.length message in
-    Lwt_unix.sendto client.socket msg 0 l []
-      client.sockaddr
-    >>= fun _ -> 
-      handle_message client.socket
+    Lwt_unix.sendto client.socket msg 0 l [] client.sockaddr >>= fun _ ->
+    handle_message client.socket
 
   let init_connect (client : 'a t) =
     let connect_msg =
       Yojson.Raw.to_string
         (`Assoc
           [
-            (* ("verbose", `Bool true); *)
+            ("verbose", `Bool true);
             (* ("pedantic", `Bool false); *)
             (* ("tls_required", `Bool false); *)
             (* ("lang", `Stringlit lang); *)
@@ -67,10 +63,7 @@ module Client = struct
          print_endline msg;
 
          let client : 'a t =
-           {
-             socket = socket_fd;
-             sockaddr = server_socket_address;
-           }
+           { socket = socket_fd; sockaddr = server_socket_address }
          in
 
          (* Send CONNECT request *)
@@ -81,13 +74,22 @@ module Client = struct
     in
     client
 
-
-  let pub client subject payload = 
-      let msg = Printf.sprintf "%s %d%s%s%s" subject (Bytes.length (Bytes.of_string payload)) crlf payload crlf in 
-      Lwt_main.run (
-        send_message client Messages.PUB msg >>= fun response -> print_endline response;
-        Lwt.return_unit
-      )
+  let pub client subject reply_to_subject payload =
+    let msg =
+      match reply_to_subject with
+      | Some reply_to ->
+          Printf.sprintf "%s %s %d%s%s%s" subject reply_to
+            (Bytes.length (Bytes.of_string payload))
+            crlf payload crlf
+      | None ->
+          Printf.sprintf "%s %d%s%s%s" subject
+            (Bytes.length (Bytes.of_string payload))
+            crlf payload crlf
+    in
+    Lwt_main.run
+      ( send_message client Messages.PUB msg >>= fun response ->
+        print_endline response;
+        Lwt.return_unit )
 
   let close client =
     (* Close the socket *)
