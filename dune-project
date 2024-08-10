@@ -13,7 +13,7 @@
 
 (license LICENSE)
 
-(documentation https://url/to/documentation)
+(documentation https://github.com/romanchechyotkin/nats.ocaml/blob/main/README.md)
 
 (package
  (name nats_ocaml)
