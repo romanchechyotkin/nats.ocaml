@@ -7,6 +7,10 @@
 [License-Url]: https://www.apache.org/licenses/LICENSE-2.0
 [License-Image]: https://img.shields.io/badge/License-Apache2-blue.svg
 
+## CONTRIBUTING
+
+`nats_ocaml` is an open-source project and contributions are very welcome! Please make sure to read [contributing guide](/CONTRIBUTING.md)
+
 ## USAGE 
 ```ocaml
 open Client
