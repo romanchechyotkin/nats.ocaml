@@ -9,7 +9,7 @@
 
 ## CONTRIBUTING
 
-`nats_ocaml` is an open-source project and contributions are very welcome! Please make sure to read [contributing guide](/CONTRIBUTING.md)
+`nats_ocaml` is an open-source project and contributions are very welcome! Let's make a greate ecosystem together! Please make sure to read [contributing guide](/CONTRIBUTING.md)
 
 ## USAGE 
 ```ocaml
