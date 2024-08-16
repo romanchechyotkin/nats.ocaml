@@ -10,7 +10,7 @@ let main () =
 
   let* () = Client.pub client ~subject:"FOO" ~payload:"HELLO NATS!" () in
   let* () =
-    Client.pub client ~subject:"FRONT.DOOR" ~reply_to_subject:(Some "FOO")
+    Client.pub client ~subject:"FRONT.DOOR" ~reply_to_subject:"FOO"
       ~payload:"HELLO NATS!" ()
   in
   let* () = Client.pub client ~subject:"NOTIFY" ~payload:"HELLO NATS!" () in

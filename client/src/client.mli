@@ -12,7 +12,7 @@ module Client : sig
   val pub :
     'a t ->
     subject:string ->
-    ?reply_to_subject:string option ->
+    ?reply_to_subject:string ->
     payload:string ->
     unit ->
     unit Lwt.t

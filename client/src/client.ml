@@ -59,7 +59,7 @@ module Client = struct
     let client = { sockaddr = server_socket_address; socket = socket_fd } in
     init_connect client >>= fun () -> Lwt.return client
 
-  let pub client ~subject ?(reply_to_subject = None) ~payload () =
+  let pub client ~subject ?reply_to_subject ~payload () =
     let msg =
       match reply_to_subject with
       | Some reply_to ->
