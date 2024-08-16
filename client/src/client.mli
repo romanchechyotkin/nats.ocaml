@@ -7,8 +7,15 @@ module Client : sig
 
   type 'a t = { sockaddr : sockaddr; socket : Lwt_unix.file_descr }
 
-  val connect : string -> int -> 'a t Lwt.t
-  val pub : 'a t -> string -> string option -> string -> unit Lwt.t
-  val sub : 'a t -> string -> unit Lwt.t
+  val connect : host:string -> port:int -> 'a t Lwt.t
+
+  val pub :
+    'a t ->
+    subject:string ->
+    reply_to_subject:string option ->
+    payload:string ->
+    unit Lwt.t
+
+  val sub : 'a t -> subject:string -> unit Lwt.t
   val close : 'a t -> unit Lwt.t
 end
