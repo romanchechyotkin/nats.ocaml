@@ -46,7 +46,7 @@ module Client = struct
     send_message client CONNECT (Printf.sprintf "%s%s" connect_msg crlf)
     >|= fun response -> print_endline response
 
-  let connect ~host ~port =
+  let connect ?(host = default_host) ?(port = default_port) () =
     (* Create a TCP socket *)
     let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
 
@@ -59,7 +59,7 @@ module Client = struct
     let client = { sockaddr = server_socket_address; socket = socket_fd } in
     init_connect client >>= fun () -> Lwt.return client
 
-  let pub client ~subject ~reply_to_subject ~payload =
+  let pub client ~subject ?(reply_to_subject = None) ~payload () =
     let msg =
       match reply_to_subject with
       | Some reply_to ->
