@@ -17,19 +17,24 @@ open Client
 open Lwt.Syntax
 
 let main () =
-  let host = Client.default_host in
-  let port = Client.default_port in
-  let* client = Client.connect host port in (* client initialization *)
-
+  (* client initialization *)
+  let* client = Client.connect ~host:"127.0.0.1" () in
+  (* or  
+  let* client = Client.connect () in  
+  *)
+  
   (* subscription to subject *)
-  let* () = Client.sub client "FOO" in
-  let* () = Client.sub client "FRONT.*" in
-  let* () = Client.sub client "NOTIFY" in
+  let* () = Client.sub client ~subject:"FOO" in
+  let* () = Client.sub client ~subject:"FRONT.*" in
+  let* () = Client.sub client ~subject:"NOTIFY" in
 
   (* publishing message to subject *)
-  let* () = Client.pub client "FOO" None "HELLO NATS!" in
-  let* () = Client.pub client "FRONT.DOOR" None "HELLO NATS!" in
-  let* () = Client.pub client "NOTIFY" None "HELLO NATS!" in
+  let* () = Client.pub client ~subject:"FOO" ~payload:"HELLO NATS!" () in
+  let* () =
+    Client.pub client ~subject:"FRONT.DOOR" ~reply_to_subject:"FOO"
+      ~payload:"HELLO NATS!" ()
+  in
+  let* () = Client.pub client ~subject:"NOTIFY" ~payload:"HELLO NATS!" () in
 
   (* closing connection to NATS server *)  
   Client.close client
