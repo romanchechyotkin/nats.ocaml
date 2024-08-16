@@ -22,8 +22,8 @@ module Client = struct
     let message =
       match mtype with
       | CONNECT | PUB | SUB ->
-          Printf.sprintf "%s %s" (Messages.string_of_mtype mtype) message
-      | _ -> Printf.sprintf "%s%s" (Messages.string_of_mtype mtype) crlf
+          Printf.sprintf "%s %s" (mtype_to_string mtype) message
+      | _ -> Printf.sprintf "%s%s" (mtype_to_string mtype) crlf
     in
     print_endline ("sending request: " ^ message);
     let msg : bytes = Bytes.of_string message in
@@ -47,52 +47,41 @@ module Client = struct
     >|= fun response -> print_endline response
 
   let connect host port =
-    let result =
-      (* Create a TCP socket *)
-      let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
+    (* Create a TCP socket *)
+    let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
 
-      (* Server details *)
-      let server_address = inet_addr_of_string host in
-      let server_port = port in
-      let server_socket_address = ADDR_INET (server_address, server_port) in
+    (* Server details *)
+    let server_address = inet_addr_of_string host in
+    let server_port = port in
+    let server_socket_address = ADDR_INET (server_address, server_port) in
 
-      Lwt_unix.connect socket_fd server_socket_address >>= fun () ->
-      let client = { sockaddr = server_socket_address; socket = socket_fd } in
-      init_connect client >>= fun () -> Lwt.return client
-    in
-
-    Lwt_main.run result
+    Lwt_unix.connect socket_fd server_socket_address >>= fun () ->
+    let client = { sockaddr = server_socket_address; socket = socket_fd } in
+    init_connect client >>= fun () -> Lwt.return client
 
   let pub client subject reply_to_subject payload =
-    let result =
-      let msg =
-        match reply_to_subject with
-        | Some reply_to ->
-            Printf.sprintf "%s %s %d%s%s%s" subject reply_to
-              (Bytes.length (Bytes.of_string payload))
-              crlf payload crlf
-        | None ->
-            Printf.sprintf "%s %d%s%s%s" subject
-              (Bytes.length (Bytes.of_string payload))
-              crlf payload crlf
-      in
-      send_message client Messages.PUB msg >|= fun response ->
-      print_endline response
+    let msg =
+      match reply_to_subject with
+      | Some reply_to ->
+          Printf.sprintf "%s %s %d%s%s%s" subject reply_to
+            (Bytes.length (Bytes.of_string payload))
+            crlf payload crlf
+      | None ->
+          Printf.sprintf "%s %d%s%s%s" subject
+            (Bytes.length (Bytes.of_string payload))
+            crlf payload crlf
     in
-    Lwt_main.run result
+    send_message client Messages.PUB msg >|= fun response ->
+    print_endline response
 
   let sub client subject =
-    let result =
-      a := !a + 1;
-      let msg = Printf.sprintf "%s %d%s" subject !a crlf in
-      send_message client Messages.SUB msg >|= fun response ->
-      print_endline response
-    in
-    Lwt_main.run result
+    a := !a + 1;
+    let msg = Printf.sprintf "%s %d%s" subject !a crlf in
+    send_message client Messages.SUB msg >|= fun response ->
+    print_endline response
 
   let close client =
     (* Close the socket *)
     print_endline "socket closed";
-    let result = Lwt_unix.close client.socket in
-    Lwt_main.run result
+    Lwt_unix.close client.socket
 end

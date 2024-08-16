@@ -36,3 +36,8 @@ let main () =
 
 let () = Lwt_main.run (main ())
 ```
+
+## SOURCES
+[NATS documentation](https://docs.nats.io/)
+
+[NATS Client protocol documentation](https://docs.nats.io/reference/reference-protocols/nats-protocol)
