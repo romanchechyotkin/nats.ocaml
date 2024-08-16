@@ -15,7 +15,7 @@ let main () =
       ~payload:"HELLO NATS!"
   in
   let* () =
-    Client.pub client ~subject:"FRONT.DOOR" ~reply_to_subject:None
+    Client.pub client ~subject:"FRONT.DOOR" ~reply_to_subject:(Some "FOO")
       ~payload:"HELLO NATS!"
   in
   let* () =
