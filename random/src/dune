@@ -1,0 +1,3 @@
+(library
+ (name random)
+ (public_name nats_ocaml.random))

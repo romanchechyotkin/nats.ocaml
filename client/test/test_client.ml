@@ -1,5 +1,7 @@
-open Lwt.Syntax
 open Client
+
+open Lwt.Syntax
+
 
 let main () =
   let* client = Client.connect ~host:"127.0.0.1" () in

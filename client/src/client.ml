@@ -1,14 +1,15 @@
+open Messages
+open Random
+
 open Lwt.Syntax
 open Lwt.Infix
 open Unix
-open Messages
 
 module Client = struct
   let default_host : string = "127.0.0.1"
   let default_port : int = 4222
   let lang : string = "ocaml"
   let crlf : string = "\r\n"
-  let a = ref 1
 
   type 'a t = { sockaddr : sockaddr; socket : Lwt_unix.file_descr }
 
@@ -75,8 +76,8 @@ module Client = struct
     print_endline response
 
   let sub client ~subject =
-    a := !a + 1;
-    let msg = Printf.sprintf "%s %d%s" subject !a crlf in
+    let sid = unique_sid () in
+    let msg = Printf.sprintf "%s %s%s" subject sid crlf in
     send_message client Messages.SUB msg >|= fun response ->
     print_endline response
 
