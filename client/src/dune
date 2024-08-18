@@ -1,6 +1,0 @@
-(library
- (name client)
- (public_name nats_ocaml.client)
- (libraries lwt.unix yojson nats_ocaml.sid)
- (preprocess
-  (pps ppx_deriving_variant_string)))
