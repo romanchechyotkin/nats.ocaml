@@ -23,9 +23,3 @@ module Initial = struct
         ("lang", `String t.lang);
       ]
 end
-
-(* ("verbose", `Bool true); *)
-(* ("pedantic", `Bool false); *)
-(* ("tls_required", `Bool false); *)
-(* ("echo", `Bool false); *)
-(* ("lang", `Stringlit lang); *)
