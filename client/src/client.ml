@@ -11,11 +11,14 @@ module Client = struct
 
   type 'a t = { sockaddr : sockaddr; socket : Lwt_unix.file_descr }
 
-  (* let handle_reply file_descr =
-     let buffer = Bytes.create 1024 in
-     let* num_bytes = Lwt_unix.recv file_descr buffer 0 1024 [] in
-     let message = Bytes.sub_string buffer 0 num_bytes in
-     Lwt.return message *)
+  let handle_response client =
+    let buffer = Bytes.create 1024 in
+    let* num_bytes = Lwt_unix.recv client.socket buffer 0 1024 [] in
+    if num_bytes > 0 then (
+      let message = Bytes.sub_string buffer 0 num_bytes in
+      print_endline ("GOT RESPONSE: " ^ message);
+      Lwt.return_unit)
+    else Lwt.return ()
 
   let send_message client mtype message =
     let message =
@@ -38,7 +41,7 @@ module Client = struct
             ("verbose", `Bool true);
             ("pedantic", `Bool false);
             ("tls_required", `Bool false);
-            ("echo", `Bool false);
+            ("echo", `Bool true);
             (* ("lang", `Stringlit lang); *)
           ])
     in
@@ -46,15 +49,6 @@ module Client = struct
       send_message client CONNECT (Printf.sprintf "%s%s" connect_msg crlf)
     in
     Lwt.return ()
-
-  let rec listen_messages client =
-    let buffer = Bytes.create 1024 in
-    let* num_bytes = Lwt_unix.recv client.socket buffer 0 1024 [] in
-    if num_bytes > 0 then (
-      let message = Bytes.sub_string buffer 0 num_bytes in
-      print_endline ("GOT RESPONSE: " ^ message);
-      listen_messages client)
-    else Lwt.return ()
 
   let connect ?(host = default_host) ?(port = default_port) () =
     (* Create a TCP socket *)
@@ -67,8 +61,6 @@ module Client = struct
 
     let* () = Lwt_unix.connect socket_fd server_socket_address in
     let client = { sockaddr = server_socket_address; socket = socket_fd } in
-
-    Lwt.async (fun () -> listen_messages client);
 
     let* () = init_connect client in
     Lwt.return client
@@ -86,12 +78,14 @@ module Client = struct
             crlf payload crlf
     in
     let* () = send_message client Messages.PUB msg in
+    let* () = handle_response client in
     Lwt.return ()
 
   let sub client ~subject =
     let sid = unique_sid () in
     let msg = Printf.sprintf "%s %s%s" subject sid crlf in
     let* () = send_message client Messages.SUB msg in
+    let* () = handle_response client in
     Lwt.return ()
 
   let close client =
