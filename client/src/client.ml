@@ -1,5 +1,4 @@
 open Messages
-open Random
 open Lwt.Syntax
 open Lwt.Infix
 open Unix
@@ -32,6 +31,9 @@ module Client = struct
     handle_reply client.socket
 
   let init_connect (client : 'a t) =
+    (* Required to generate Sid.t.  *)
+    Random.self_init ();
+
     let connect_msg =
       Yojson.Raw.to_string
         (`Assoc
@@ -75,7 +77,7 @@ module Client = struct
     print_endline response
 
   let sub client ~subject =
-    let sid = unique_sid () in
+    let sid = Sid.create 9 in
     let msg = Printf.sprintf "%s %s%s" subject sid crlf in
     send_message client Messages.SUB msg >|= fun response ->
     print_endline response
