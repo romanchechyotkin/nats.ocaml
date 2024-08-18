@@ -1,6 +1,5 @@
 open Messages
 open Random
-
 open Lwt.Syntax
 open Lwt.Infix
 open Unix
