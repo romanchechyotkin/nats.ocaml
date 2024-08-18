@@ -1,0 +1,6 @@
+(library
+ (name client)
+ (public_name nats_ocaml.client)
+ (libraries lwt.unix yojson nats_ocaml.sid)
+ (preprocess
+  (pps lwt_ppx)))

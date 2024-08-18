@@ -1,20 +1,36 @@
-open Client
-open Lwt.Syntax
-
 let main () =
-  let* client = Client.connect ~host:"127.0.0.1" () in
+  let%lwt client = Client.make { port = 4222; host = "127.0.0.1" } in
 
-  let* () = Client.sub client ~subject:"FOO" in
-  let* () = Client.sub client ~subject:"FRONT.*" in
-  let* () = Client.sub client ~subject:"NOTIFY" in
-
-  let* () = Client.pub client ~subject:"FOO" ~payload:"HELLO NATS!" () in
-  let* () =
-    Client.pub client ~subject:"FRONT.DOOR" ~reply_to_subject:"FOO"
-      ~payload:"HELLO NATS!" ()
+  let%lwt resp =
+    client#init
+      {
+        lang = "ocaml";
+        echo = true;
+        tls_required = false;
+        pedantic = false;
+        verbose = true;
+      }
   in
-  let* () = Client.pub client ~subject:"NOTIFY" ~payload:"HELLO NATS!" () in
+  Printf.printf "resp: %s\n" resp;
 
-  Client.close client
+  client#sub ~subject:"FOO" ();%lwt
+  let%lwt resp = client#receive_response in
+  Printf.printf "resp: %s\n" resp;
 
-let () = Lwt_main.run (main ())
+  client#sub ~subject:"FRONT.*" ();%lwt
+  let%lwt resp = client#receive_response in
+  Printf.printf "resp: %s\n" resp;
+
+  client#pub ~subject:"FOO" "HELLO NATS!";%lwt
+  let%lwt resp = client#receive_response in
+  Printf.printf "resp: %s\n" resp;
+
+  client#pub ~subject:"FRONT.DOOR" ~reply_to:"FOO" "HELLO NATS!";%lwt
+  let%lwt resp = client#receive_response in
+  Printf.printf "resp: %s\n" resp;
+
+  client#close;%lwt
+
+  Lwt.return_unit
+
+let () = Lwt_main.run @@ main ()

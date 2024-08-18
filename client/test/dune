@@ -3,4 +3,4 @@
  (modules test_client)
  (libraries nats_ocaml.client lwt)
  (preprocess
-  (pps ppx_let)))
+  (pps lwt_ppx)))
