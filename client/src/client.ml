@@ -1,7 +1,6 @@
 open Messages
 open Random
 open Lwt.Syntax
-open Lwt.Infix
 open Unix
 
 module Client = struct
@@ -12,11 +11,11 @@ module Client = struct
 
   type 'a t = { sockaddr : sockaddr; socket : Lwt_unix.file_descr }
 
-  let handle_reply file_descr =
-    let buffer = Bytes.create 1024 in
-    let* num_bytes = Lwt_unix.recv file_descr buffer 0 1024 [] in
-    let message = Bytes.sub_string buffer 0 num_bytes in
-    Lwt.return message
+  (* let handle_reply file_descr =
+     let buffer = Bytes.create 1024 in
+     let* num_bytes = Lwt_unix.recv file_descr buffer 0 1024 [] in
+     let message = Bytes.sub_string buffer 0 num_bytes in
+     Lwt.return message *)
 
   let send_message client mtype message =
     let message =
@@ -29,7 +28,7 @@ module Client = struct
     let msg : bytes = Bytes.of_string message in
     let l = String.length message in
     let* _ = Lwt_unix.sendto client.socket msg 0 l [] client.sockaddr in
-    handle_reply client.socket
+    Lwt.return ()
 
   let init_connect (client : 'a t) =
     let connect_msg =
@@ -43,8 +42,19 @@ module Client = struct
             (* ("lang", `Stringlit lang); *)
           ])
     in
-    send_message client CONNECT (Printf.sprintf "%s%s" connect_msg crlf)
-    >|= fun response -> print_endline response
+    let* () =
+      send_message client CONNECT (Printf.sprintf "%s%s" connect_msg crlf)
+    in
+    Lwt.return ()
+
+  let rec listen_messages client =
+    let buffer = Bytes.create 1024 in
+    let* num_bytes = Lwt_unix.recv client.socket buffer 0 1024 [] in
+    if num_bytes > 0 then (
+      let message = Bytes.sub_string buffer 0 num_bytes in
+      print_endline ("GOT RESPONSE: " ^ message);
+      listen_messages client)
+    else Lwt.return ()
 
   let connect ?(host = default_host) ?(port = default_port) () =
     (* Create a TCP socket *)
@@ -55,9 +65,13 @@ module Client = struct
     let server_port = port in
     let server_socket_address = ADDR_INET (server_address, server_port) in
 
-    Lwt_unix.connect socket_fd server_socket_address >>= fun () ->
+    let* () = Lwt_unix.connect socket_fd server_socket_address in
     let client = { sockaddr = server_socket_address; socket = socket_fd } in
-    init_connect client >>= fun () -> Lwt.return client
+
+    Lwt.async (fun () -> listen_messages client);
+
+    let* () = init_connect client in
+    Lwt.return client
 
   let pub client ~subject ?reply_to_subject ~payload () =
     let msg =
@@ -71,14 +85,14 @@ module Client = struct
             (Bytes.length (Bytes.of_string payload))
             crlf payload crlf
     in
-    send_message client Messages.PUB msg >|= fun response ->
-    print_endline response
+    let* () = send_message client Messages.PUB msg in
+    Lwt.return ()
 
   let sub client ~subject =
     let sid = unique_sid () in
     let msg = Printf.sprintf "%s %s%s" subject sid crlf in
-    send_message client Messages.SUB msg >|= fun response ->
-    print_endline response
+    let* () = send_message client Messages.SUB msg in
+    Lwt.return ()
 
   let close client =
     (* Close the socket *)
