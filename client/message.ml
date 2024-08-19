@@ -14,7 +14,6 @@ module Initial = struct
     pedantic : bool;
     tls_required : bool;
     echo : bool;
-    lang : string;
   }
   (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
 
@@ -26,6 +25,6 @@ module Initial = struct
         ("pedantic", `Bool t.pedantic);
         ("tls_required", `Bool t.tls_required);
         ("echo", `Bool t.echo);
-        ("lang", `String t.lang);
+        ("lang", `String "ocaml");
       ]
 end

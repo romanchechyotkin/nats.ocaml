@@ -4,7 +4,6 @@ let main () =
   let%lwt resp =
     client#init
       {
-        lang = "ocaml";
         echo = true;
         tls_required = false;
         pedantic = false;
