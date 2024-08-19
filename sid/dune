@@ -1,3 +1,0 @@
-(library
- (name sid)
- (public_name nats_ocaml.sid))
