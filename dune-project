@@ -1,6 +1,6 @@
 (lang dune 3.16)
 
-(name nats_ocaml)
+(name nats-client)
 
 (generate_opam_files true)
 
@@ -16,7 +16,7 @@
 (documentation https://github.com/romanchechyotkin/nats.ocaml/blob/main/README.md)
 
 (package
- (name nats_ocaml)
+ (name nats-client)
  (synopsis "NATS client")
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends ocaml dune)
