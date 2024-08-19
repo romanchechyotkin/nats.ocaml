@@ -11,14 +11,18 @@
 
 (maintainers "Roman Chechyotkin")
 
-(license LICENSE)
-
-(documentation https://github.com/romanchechyotkin/nats.ocaml/blob/main/README.md)
+(license Apache-2.0)
 
 (package
  (name nats-client)
  (synopsis "NATS client")
  (description "OCaml client for NATS, the cloud native messaging system")
- (depends ocaml dune)
- (tags
-  (topics "to describe" your project)))
+ (depends
+  (ocaml
+   (> 4.14))
+  dune
+  ; TODO: set explicit versions
+  lwt
+  yojson
+  lwt_ppx)
+ (tags (nats)))

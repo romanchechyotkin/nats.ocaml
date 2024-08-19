@@ -4,14 +4,16 @@ synopsis: "NATS client"
 description: "OCaml client for NATS, the cloud native messaging system"
 maintainer: ["Roman Chechyotkin"]
 authors: ["Roman Chechyotkin"]
-license: "LICENSE"
-tags: ["topics" "to describe" "your" "project"]
+license: "Apache-2.0"
+tags: ["nats"]
 homepage: "https://github.com/romanchechyotkin/nats.ocaml"
-doc: "https://github.com/romanchechyotkin/nats.ocaml/blob/main/README.md"
 bug-reports: "https://github.com/romanchechyotkin/nats.ocaml/issues"
 depends: [
-  "ocaml"
+  "ocaml" {> "4.14"}
   "dune" {>= "3.16"}
+  "lwt"
+  "yojson"
+  "lwt_ppx"
   "odoc" {with-doc}
 ]
 build: [
