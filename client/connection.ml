@@ -18,15 +18,15 @@ let send_message conn message =
   | Connect json ->
       (* NOTE: Yojson.Safe.pp gives a bad result.
          TODO: improve performance of JSON encoding (now is bad) *)
-      Lwt_io.fprintf conn.oc "CONNECT %s\r\n" (Yojson.Safe.to_string json)
+      Lwt_io.fprintf conn.oc "CONNECT %s%s" (Yojson.Safe.to_string json) crlf
   | Pub { subject; reply_to; payload } ->
-      Lwt_io.fprintf conn.oc "PUB %s%s %d\r\n%s\r\n" subject
+      Lwt_io.fprintf conn.oc "PUB %s%s %d%s%s%s" subject
         (Option.fold ~none:"" ~some:(Printf.sprintf " %s") reply_to)
-        (String.length payload) payload
+        (String.length payload) crlf payload crlf
   | Sub { subject; queue_group; sid } ->
-      Lwt_io.fprintf conn.oc "SUB %s%s %s\r\n" subject
+      Lwt_io.fprintf conn.oc "SUB %s%s %s%s" subject
         (Option.fold ~none:"" ~some:(Printf.sprintf " %s") queue_group)
-        sid
+        sid crlf
   | _ -> failwith "unknown message type"
 
 let recv_response conn = Lwt_io.read_line conn.ic
