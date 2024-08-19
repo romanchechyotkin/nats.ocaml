@@ -7,7 +7,7 @@
 (source
  (github romanchechyotkin/nats.ocaml))
 
-(authors "Roman Chechyotkin")
+(authors "Roman Chechyotkin" "Mikhail Lopatin <dx3mod@bk.ru>")
 
 (maintainers "Roman Chechyotkin")
 

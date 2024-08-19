@@ -3,7 +3,7 @@ opam-version: "2.0"
 synopsis: "NATS client"
 description: "OCaml client for NATS, the cloud native messaging system"
 maintainer: ["Roman Chechyotkin"]
-authors: ["Roman Chechyotkin"]
+authors: ["Roman Chechyotkin" "Mikhail Lopatin <dx3mod@bk.ru>"]
 license: "Apache-2.0"
 tags: ["nats"]
 homepage: "https://github.com/romanchechyotkin/nats.ocaml"
