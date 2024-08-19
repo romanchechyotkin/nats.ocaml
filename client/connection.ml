@@ -11,7 +11,10 @@ let crlf = "\r\n"
 let send_message conn message =
   let open Message in
   match message with
-  | Connect json -> Lwt_io.printf "CONNECT %s\r\n" (Yojson.Safe.to_string json)
+  | Connect json ->
+      (* NOTE: Yojson.Safe.pp gives a bad result.
+         TODO: improve performance of JSON encoding (now is bad) *)
+      Lwt_io.fprintf conn.oc "CONNECT %s\r\n" (Yojson.Safe.to_string json)
   | Pub { subject; reply_to; payload } ->
       Lwt_io.fprintf conn.oc "PUB %s%s %d\r\n%s\r\n" subject
         (Option.fold ~none:"" ~some:(Printf.sprintf " %s") reply_to)
