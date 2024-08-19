@@ -21,3 +21,6 @@ class client (connection : Connection.t) =
 let make settings =
   let%lwt connection = Connection.create settings in
   Lwt.return @@ new client connection
+
+module Message = Message
+module Sid = Sid

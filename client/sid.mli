@@ -1,4 +1,11 @@
-(** Subscription ID. *)
+(** Subscription ID.
+
+    {b Example}
+
+    {[
+        Random.self_init ();
+        let sid = Sid.create 9 
+    ]} *)
 
 type t = string
 

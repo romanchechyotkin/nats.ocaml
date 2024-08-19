@@ -1,5 +1,5 @@
 let main () =
-  let%lwt client = Client.make { port = 4222; host = "127.0.0.1" } in
+  let%lwt client = Nats_client.make { port = 4222; host = "127.0.0.1" } in
 
   let%lwt resp =
     client#init

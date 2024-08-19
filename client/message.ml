@@ -1,9 +1,13 @@
+(** NATS message. *)
+
 type t =
   | Ping
   | Connect of Yojson.Safe.t
   | Pub of { subject : string; reply_to : string option; payload : string }
   | Sub of { subject : string; queue_group : string option; sid : Sid.t }
+(* TODO: implement another message types *)
 
+(** Initial message. *)
 module Initial = struct
   type t = {
     verbose : bool;
@@ -12,7 +16,9 @@ module Initial = struct
     echo : bool;
     lang : string;
   }
+  (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
 
+  (* TODO: for encoding/decoding JSON should use [ppx_deriving_yojson] preprocessor. *)
   let to_yojson t : Yojson.Safe.t =
     `Assoc
       [

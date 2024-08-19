@@ -5,11 +5,15 @@ type t = {
   oc : Lwt_io.output_channel;
   socket : Lwt_unix.file_descr;
 }
+(** NATS client connection.
+
+    Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol *)
 
 let crlf = "\r\n"
 
 let send_message conn message =
   let open Message in
+  (* TODO: improve message format *)
   match message with
   | Connect json ->
       (* NOTE: Yojson.Safe.pp gives a bad result.
@@ -27,6 +31,7 @@ let send_message conn message =
 
 let recv_response conn = Lwt_io.read_line conn.ic
 
+(** Create TCP connection for communicate by NATS protocol.  *)
 let create ({ host; port } : Settings.t) =
   (* Create a TCP socket *)
   let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
@@ -38,9 +43,11 @@ let create ({ host; port } : Settings.t) =
 
   Lwt_unix.connect socket_fd server_socket_address;%lwt
 
+  (* Wrap raw file descriptors into channel abstractions.  *)
   let ic = Lwt_io.of_fd ~mode:Lwt_io.Input socket_fd in
   let oc = Lwt_io.of_fd ~mode:Lwt_io.Output socket_fd in
 
+  (* The socket_fd capture is needed to close it later. *)
   Lwt.return { ic; oc; socket = socket_fd }
 
 let close conn =

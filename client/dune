@@ -1,6 +1,6 @@
 (library
- (name client)
- (public_name nats_ocaml.client)
+ (name nats_client)
+ (public_name nats-client)
  (libraries lwt.unix yojson)
  (preprocess
   (pps lwt_ppx)))
