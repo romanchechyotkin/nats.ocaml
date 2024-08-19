@@ -1,4 +1,4 @@
-(executable
+(test
  (name test_client)
  (modules test_client)
  (libraries nats-client lwt)
