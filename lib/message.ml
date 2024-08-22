@@ -9,12 +9,7 @@ type t =
 
 (** Initial message. *)
 module Initial = struct
-  type t = {
-    verbose : bool;
-    pedantic : bool;
-    tls_required : bool;
-    echo : bool;
-  }
+  type t = { verbose : bool; pedantic : bool; tls_required : bool; echo : bool }
   (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
 
   (* TODO: for encoding/decoding JSON should use [ppx_deriving_yojson] preprocessor. *)

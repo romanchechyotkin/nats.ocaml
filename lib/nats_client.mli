@@ -1,3 +1,5 @@
+(** {1 Client} *)
+
 (** NATS Client. *)
 class client : Connection.t -> object
   method init : Message.Initial.t -> string Lwt.t
@@ -11,13 +13,18 @@ class client : Connection.t -> object
   method sub : subject:string -> ?sid:string -> unit -> unit Lwt.t
 end
 
-val make : Settings.t -> client Lwt.t
+val make : Connection.setting -> client Lwt.t
 (** Make a NATS client.
 
     {b Example}
     {[
-        let client = Nats_client.make { port = 4222; host = "127.0.0.1" } 
-    ]} *)
+      let client = Nats_client.make { port = 4222; host = "127.0.0.1" }
+    ]}
+      
+    @raises Connection.Connection_refused *)
+
+(** {1 Exports}  *)
 
 module Message = Message
 module Sid = Sid
+module Connection = Connection

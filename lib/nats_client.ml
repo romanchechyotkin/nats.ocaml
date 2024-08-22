@@ -24,3 +24,4 @@ let make settings =
 
 module Message = Message
 module Sid = Sid
+module Connection = Connection

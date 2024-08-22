@@ -1,6 +1,5 @@
-(test
- (name test_client)
- (modules test_client)
+(executable
+ (name demo)
  (libraries nats-client lwt)
  (preprocess
   (pps lwt_ppx)))

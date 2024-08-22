@@ -3,12 +3,7 @@ let main () =
 
   let%lwt resp =
     client#init
-      {
-        echo = true;
-        tls_required = false;
-        pedantic = false;
-        verbose = true;
-      }
+      { echo = true; tls_required = false; pedantic = false; verbose = true }
   in
   Printf.printf "resp: %s\n" resp;
 
