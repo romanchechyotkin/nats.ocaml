@@ -32,6 +32,8 @@ module Send = struct
     (* NOTE: Yojson.Safe.pp gives a bad result.
        TODO: improve performance of JSON encoding (now is bad) *)
     Lwt_io.fprintf conn.oc "CONNECT %s\r\n" (Yojson.Safe.to_string json)
+
+  (* TODO: add other *)
 end
 
 let receive conn =
