@@ -10,7 +10,6 @@ FEEL FREE TO CREATE ISSUES AND PRs
 - Dune
 - OPAM
 
-### How to run?
+### How to start?
 
-1. [Start NATS server](https://docs.nats.io/running-a-nats-service/nats_docker/nats-docker-tutorial)
-2. Run `dune runtest`
+See [development demo](./tests/dev/).
