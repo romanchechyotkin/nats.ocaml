@@ -14,24 +14,26 @@ type t = {
 exception Connection_refused
 (** Raised when failed to make a TCP connection. *)
 
+let crlf = "\r\n"
+
 module Send = struct
-  let pong conn = Lwt_io.write conn.oc "PONG\r\n"
-  let ping conn = Lwt_io.write conn.oc "PING\r\n"
+  let pong conn = Lwt_io.write conn.oc (Printf.sprintf "PONG%s" crlf)
+  let ping conn = Lwt_io.write conn.oc (Printf.sprintf "PING%s" crlf)
 
   let pub ~subject ~reply_to ~payload conn =
-    Lwt_io.fprintf conn.oc "PUB %s%s %d\r\n%s\r\n" subject
+    Lwt_io.fprintf conn.oc "PUB %s%s %d%s%s%s" subject
       (Option.fold ~none:"" ~some:(Printf.sprintf " %s") reply_to)
-      (String.length payload) payload
+      (String.length payload) crlf payload crlf
 
   let sub ~subject ~queue_group ~sid conn =
-    Lwt_io.fprintf conn.oc "SUB %s%s %s\r\n" subject
+    Lwt_io.fprintf conn.oc "SUB %s%s %s%s" subject
       (Option.fold ~none:"" ~some:(Printf.sprintf " %s") queue_group)
-      sid
+      sid crlf
 
   let connect ~json conn =
     (* NOTE: Yojson.Safe.pp gives a bad result.
        TODO: improve performance of JSON encoding (now is bad) *)
-    Lwt_io.fprintf conn.oc "CONNECT %s\r\n" (Yojson.Safe.to_string json)
+    Lwt_io.fprintf conn.oc "CONNECT %s%s" (Yojson.Safe.to_string json) crlf
 
   (* TODO: add other *)
 end
