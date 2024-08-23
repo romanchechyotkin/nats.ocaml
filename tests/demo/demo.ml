@@ -1,3 +1,5 @@
+open Lwt
+
 let main () =
   let%lwt client = Nats_client.make { port = 4222; host = "127.0.0.1" } in
 
@@ -7,21 +9,26 @@ let main () =
   in
   Printf.printf "resp: %s\n" resp;
 
+  let receive_message () =
+    client#receive
+    >|= Format.printf "resp: %a\n" Nats_client.Message.Incoming.pp
+  in
+
   client#sub ~subject:"FOO" ();%lwt
-  let%lwt resp = client#receive_response in
-  Printf.printf "resp: %s\n" resp;
+  receive_message ();%lwt
 
   client#sub ~subject:"FRONT.*" ();%lwt
-  let%lwt resp = client#receive_response in
-  Printf.printf "resp: %s\n" resp;
+  receive_message ();%lwt
 
   client#pub ~subject:"FOO" "HELLO NATS!";%lwt
-  let%lwt resp = client#receive_response in
-  Printf.printf "resp: %s\n" resp;
+  receive_message ();%lwt
+  receive_message ();%lwt
 
   client#pub ~subject:"FRONT.DOOR" ~reply_to:"FOO" "HELLO NATS!";%lwt
-  let%lwt resp = client#receive_response in
-  Printf.printf "resp: %s\n" resp;
+  receive_message ();%lwt
+  receive_message ();%lwt
+  receive_message ();%lwt
+  receive_message ();%lwt
 
   client#close;%lwt
 

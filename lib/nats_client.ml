@@ -1,20 +1,23 @@
 class client (connection : Connection.t) =
-  object
-    method init (initial_message : Message.Initial.t) =
-      Connection.send_message connection
-        (Message.Connect (Message.Initial.to_yojson initial_message));%lwt
-      Connection.recv_response connection
+  object (self)
+    method init (msg : Message.Initial.t) =
+      Connection.Send.connect ~json:(Message.Initial.to_yojson msg) connection;%lwt
+      match%lwt self#receive with
+      | Message.Incoming.Info json -> Lwt.return json
+      | m ->
+          Format.asprintf
+            "expected INFO message after connect, but got '%a' message"
+            Message.Incoming.pp m
+          |> failwith
 
     method pub ~subject ?reply_to payload =
-      Connection.send_message connection
-        Message.(Pub { subject; reply_to; payload })
+      Connection.Send.pub ~subject ~reply_to ~payload connection
 
     method sub ~subject ?(sid : Sid.t option) () =
       let sid = Option.value ~default:(Sid.create 9) sid in
-      Connection.send_message connection
-        (Message.Sub { subject; sid; queue_group = None })
+      Connection.Send.sub ~subject ~sid ~queue_group:None connection
 
-    method receive_response = Connection.recv_response connection
+    method receive = Connection.receive connection
     method close = Connection.close connection
   end
 

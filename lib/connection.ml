@@ -14,27 +14,60 @@ type t = {
 exception Connection_refused
 (** Raised when failed to make a TCP connection. *)
 
-let crlf = "\r\n"
+module Send = struct
+  let pong conn = Lwt_io.write conn.oc "PONG\r\n"
+  let ping conn = Lwt_io.write conn.oc "PING\r\n"
 
-let send_message conn message =
-  let open Message in
-  (* TODO: improve message format *)
-  match message with
-  | Connect json ->
-      (* NOTE: Yojson.Safe.pp gives a bad result.
-         TODO: improve performance of JSON encoding (now is bad) *)
-      Lwt_io.fprintf conn.oc "CONNECT %s%s" (Yojson.Safe.to_string json) crlf
-  | Pub { subject; reply_to; payload } ->
-      Lwt_io.fprintf conn.oc "PUB %s%s %d%s%s%s" subject
-        (Option.fold ~none:"" ~some:(Printf.sprintf " %s") reply_to)
-        (String.length payload) crlf payload crlf
-  | Sub { subject; queue_group; sid } ->
-      Lwt_io.fprintf conn.oc "SUB %s%s %s%s" subject
-        (Option.fold ~none:"" ~some:(Printf.sprintf " %s") queue_group)
-        sid crlf
-  | _ -> failwith "unknown message type"
+  let pub ~subject ~reply_to ~payload conn =
+    Lwt_io.fprintf conn.oc "PUB %s%s %d\r\n%s\r\n" subject
+      (Option.fold ~none:"" ~some:(Printf.sprintf " %s") reply_to)
+      (String.length payload) payload
 
-let recv_response conn = Lwt_io.read_line conn.ic
+  let sub ~subject ~queue_group ~sid conn =
+    Lwt_io.fprintf conn.oc "SUB %s%s %s\r\n" subject
+      (Option.fold ~none:"" ~some:(Printf.sprintf " %s") queue_group)
+      sid
+
+  let connect ~json conn =
+    (* NOTE: Yojson.Safe.pp gives a bad result.
+       TODO: improve performance of JSON encoding (now is bad) *)
+    Lwt_io.fprintf conn.oc "CONNECT %s\r\n" (Yojson.Safe.to_string json)
+end
+
+let receive conn =
+  let%lwt line = Lwt_io.read_line conn.ic in
+
+  let is_starts prefix = String.starts_with ~prefix in
+
+  (* TODO: improve message parsing *)
+  match line with
+  | "PING" -> Lwt.return Message.Incoming.Ping
+  | "PONG" -> Lwt.return Message.Incoming.Pong
+  | "+OK" -> Lwt.return Message.Incoming.Ok
+  | "+ERR" -> Lwt.return Message.Incoming.Err
+  | line when is_starts "INFO" line ->
+      Scanf.sscanf line "INFO %s" (fun json ->
+          Lwt.return @@ Message.Incoming.Info json)
+  | line when is_starts "MSG" line -> (
+      (* it's very bad code >_< *)
+      let read_payload bytes =
+        let%lwt payload = Lwt_io.read ~count:bytes conn.ic in
+        let%lwt _ = Lwt_io.read ~count:2 conn.ic in
+        Lwt.return payload
+      in
+
+      match String.split_on_char ' ' line with
+      | [ _; subject; sid; bytes ] ->
+          let%lwt payload = read_payload (int_of_string bytes) in
+          Lwt.return
+            Message.Incoming.(Msg { subject; sid; payload; reply_to = None })
+      | [ _; subject; sid; reply_to; bytes ] ->
+          let%lwt payload = read_payload (int_of_string bytes) in
+          Lwt.return
+            Message.Incoming.(
+              Msg { subject; sid; payload; reply_to = Some reply_to })
+      | _ -> failwith "invalid MSG message")
+  | line -> failwith @@ "unknown incoming message: " ^ line
 
 type setting = { host : string; port : int }
 (** NATS server connection settings. *)
