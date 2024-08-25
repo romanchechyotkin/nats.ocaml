@@ -16,7 +16,6 @@
 (package
  (name nats-client)
  (synopsis "NATS client")
- (version 0.0.1)
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends
   (alcotest :with-test)
