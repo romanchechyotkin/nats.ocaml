@@ -14,7 +14,9 @@ depends: [
   "lwt"
   "yojson"
   "lwt_ppx"
-  "alcotest"
+  "alcotest" {with-test}
+  "ocamlformat" {= "0.26.2" & with-dev-setup}
+  "ocaml-lsp-server" {with-dev-setup}
   "odoc" {with-doc}
 ]
 build: [
