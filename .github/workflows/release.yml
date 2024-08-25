@@ -11,7 +11,6 @@ on:
 jobs:
 
   build:
-    needs: [unit-test]
     runs-on: ubuntu-latest
 
     steps:
