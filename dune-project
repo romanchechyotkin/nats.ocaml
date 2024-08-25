@@ -24,5 +24,6 @@
   ; TODO: set explicit versions
   lwt
   yojson
+  alcotest
   lwt_ppx)
  (tags (nats)))
