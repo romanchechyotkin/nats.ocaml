@@ -1,0 +1,5 @@
+(executable
+ (name test_sid)
+ (libraries nats-client alcotest)
+ (preprocess
+  (pps lwt_ppx)))
