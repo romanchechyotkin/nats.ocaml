@@ -23,3 +23,14 @@ jobs:
           release_name: Release ${{ github.ref }}
           draft: false
           prerelease: false
+      
+      - name: Publish 
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: 5
+
+      - run: opam update && opam install opam-publish
+
+      - run: opam publish 
+
+
