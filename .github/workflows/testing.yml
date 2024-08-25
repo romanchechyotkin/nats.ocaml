@@ -15,7 +15,7 @@ jobs:
       attestations: write
       contents: read
       id-token: write
-      
+
     strategy:
       fail-fast: false
       matrix:
@@ -34,9 +34,9 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set-up OCaml
-          uses: ocaml/setup-ocaml@v3
-          with:
-            ocaml-compiler: ${{ matrix.ocaml-compiler }}    
+        uses: ocaml/setup-ocaml@v3
+        with:
+          ocaml-compiler: ${{ matrix.ocaml-compiler }}    
 
       - run: opam install . --deps-only --with-test      
 
