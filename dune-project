@@ -18,12 +18,12 @@
  (synopsis "NATS client")
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends
+  (alcotest :with-test)
   (ocaml
    (> 4.14))
   dune
   ; TODO: set explicit versions
   lwt
   yojson
-  alcotest
   lwt_ppx)
  (tags (nats)))
