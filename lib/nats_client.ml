@@ -39,10 +39,8 @@ class client (connection : Connection.t) =
                when msg.sid = sid ->
                  Some msg
              | _ -> None)
-           (Lwt_stream.clone
-              incoming_messages
-              (* NOTE: is it okay? (performance issue)
-                       Anyway, I don't know how to do it any other way :< *))
+           self#incoming
+
     (** [sub ~subject ?sid ()] subscribe on the subject and get stream. *)
 
     method receive = Connection.receive connection
@@ -51,7 +49,10 @@ class client (connection : Connection.t) =
     method close = Connection.close connection
     (** Close socket connection.  *)
 
-    method incoming : Message.Incoming.t Lwt_stream.t = incoming_messages
+    method incoming : Message.Incoming.t Lwt_stream.t =
+      (* NOTE: is it okay? (performance issue)
+               Anyway, I don't know how to do it any other way :< *)
+      Lwt_stream.clone incoming_messages
     (** A stream of all incoming messages.  *)
 
     (* TODO: make drain method, unsub all subscribers  *)
