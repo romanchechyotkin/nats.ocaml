@@ -35,8 +35,8 @@ class client (connection : Connection.t) =
       @@ Lwt_stream.filter_map
            (function
              | Message.Incoming.Msg msg
-             (* TODO: improve matching. Now is just simple incorrect match *)
-               when msg.subject = subject || msg.sid = sid ->
+             (* Is it enough to check a message's SID? *)
+               when msg.sid = sid ->
                  Some msg
              | _ -> None)
            (Lwt_stream.clone
