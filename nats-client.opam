@@ -10,7 +10,7 @@ tags: ["nats"]
 homepage: "https://github.com/romanchechyotkin/nats.ocaml"
 bug-reports: "https://github.com/romanchechyotkin/nats.ocaml/issues"
 depends: [
-  "alcotest" {"1.8" >= with-test}
+  "alcotest" {with-test}
   "ocaml" {> "4.14"}
   "dune" {>= "3.16" & >= "3.6"}
   "lwt" {>= "5.7"}

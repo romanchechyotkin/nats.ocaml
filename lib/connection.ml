@@ -16,6 +16,8 @@ exception Connection_refused
 
 let crlf = "\r\n"
 
+
+
 module Send = struct
   let pong conn = Lwt_io.write conn.oc (Printf.sprintf "PONG%s" crlf)
   let ping conn = Lwt_io.write conn.oc (Printf.sprintf "PING%s" crlf)
@@ -40,7 +42,6 @@ end
 
 let receive conn =
   let%lwt line = Lwt_io.read_line conn.ic in
-
   let is_starts prefix = String.starts_with ~prefix in
 
   (* TODO: improve message parsing *)
@@ -91,12 +92,18 @@ let create { host; port } =
 
     Lwt_unix.connect socket_fd server_socket_address;%lwt
 
+
     (* Wrap raw file descriptors into channel abstractions. *)
     let ic = Lwt_io.of_fd ~mode:Lwt_io.Input socket_fd in
     let oc = Lwt_io.of_fd ~mode:Lwt_io.Output socket_fd in
 
+    let%lwt line = Lwt_io.read_line ic in
+    
+    match String.starts_with ~prefix:"INFO" line with
     (* The socket_fd capture is needed to close it later. *)
-    Lwt.return { ic; oc; socket = socket_fd }
+    | true -> Lwt.return { ic; oc; socket = socket_fd }
+    | false -> raise Connection_refused;
+
   with Unix.Unix_error (Unix.ECONNREFUSED, "connect", "") ->
     raise Connection_refused
 
