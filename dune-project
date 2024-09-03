@@ -21,6 +21,7 @@
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends
   (alcotest :with-test)
+  (alcotest-lwt :with-test)
   (ocaml
    (> 4.14))
   (dune 

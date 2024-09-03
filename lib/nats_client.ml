@@ -13,7 +13,9 @@ class client (connection : Connection.t) =
     method init msg =
       Connection.Send.connect ~json:(Message.Initial.to_yojson msg) connection;%lwt
       match%lwt self#receive with
-      | Message.Incoming.Ok -> Lwt.return (Format.asprintf "%a" Message.Incoming.pp Message.Incoming.Ok) 
+      | Message.Incoming.Ok ->
+          Lwt.return
+            (Format.asprintf "%a" Message.Incoming.pp Message.Incoming.Ok)
       | m ->
           Format.asprintf
             "expected +OK message after connect, but got '%a' message"
