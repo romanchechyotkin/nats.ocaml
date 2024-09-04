@@ -1,0 +1,15 @@
+(alias
+ (name runtest-unit)
+ (deps (alias utest)))
+
+(alias
+ (name runtest-e2e)
+ (deps (alias etest)))
+
+(rule
+ (alias utest)
+ (action (run dune runtest tests/sid -f)))
+
+(rule
+ (alias etest)
+ (action (run dune runtest tests/client -f)))
