@@ -16,6 +16,10 @@ class client (connection : Connection.t) =
       | Message.Incoming.Ok ->
           Lwt.return
             (Format.asprintf "%a" Message.Incoming.pp Message.Incoming.Ok)
+      | Message.Incoming.Ping ->
+          Connection.Send.pong connection;%lwt
+          Lwt.return
+            (Format.asprintf "%a" Message.Incoming.pp Message.Incoming.Ok)
       | m ->
           Format.asprintf
             "expected +OK message after connect, but got '%a' message"
