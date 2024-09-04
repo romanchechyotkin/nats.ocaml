@@ -11,11 +11,6 @@ permissions: read-all
 jobs:
 
   unit-test:
-    services:
-      nats:
-        image: nats:latest
-        ports:
-          - 4222:4222
 
     permissions:
       attestations: write
@@ -35,7 +30,16 @@ jobs:
           
     runs-on: ${{ matrix.os }}
 
+    services:
+      nats:
+        if: runner.os == 'ubuntu-latest'
+        image: nats:latest
+        ports:
+          - 4222:4222
+
     steps:
+      - name: start 
+
       - name: Checkout tree
         uses: actions/checkout@v4
 
