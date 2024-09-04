@@ -30,9 +30,10 @@ jobs:
           
     runs-on: ${{ matrix.os }}
 
+
     services:
+      if: runner.os == 'ubuntu-latest'
       nats:
-        if: runner.os == 'ubuntu-latest'
         image: nats:latest
         ports:
           - 4222:4222
