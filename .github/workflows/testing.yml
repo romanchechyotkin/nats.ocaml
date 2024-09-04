@@ -10,7 +10,7 @@ permissions: read-all
 
 jobs:
 
-  unit-test:
+  testing:
 
     permissions:
       attestations: write
