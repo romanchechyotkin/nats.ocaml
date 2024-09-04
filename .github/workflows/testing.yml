@@ -47,8 +47,11 @@ jobs:
 
       - run: opam exec -- dune build
 
-      - run: opam exec -- dune build @runtest-unit
+      - name: Unit testing
+        run: |
+          opam exec -- dune runtest tests/sid -f
 
       - name: E2E testing
         if: matrix.os == 'ubuntu-latest'
-        run: opam exec -- dune build @runtest-e2e
+        run: |
+          opam exec -- dune runtest tests/client -f
