@@ -38,8 +38,6 @@ jobs:
           - 4222:4222
 
     steps:
-      - name: start 
-
       - name: Checkout tree
         uses: actions/checkout@v4
 
