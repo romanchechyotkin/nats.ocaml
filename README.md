@@ -1,5 +1,5 @@
 # NATS - OCaml Client
-   
+
 [OCaml](https://ocaml.org/) client for the [NATS messaging system](https://nats.io).
 
 [![License Apache 2][License-Image]][License-Url]
