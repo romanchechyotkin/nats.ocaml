@@ -2,6 +2,8 @@
 
 (name nats-client)
 
+(version 0.1.2)
+
 (generate_opam_files true)
 
 (source
@@ -18,12 +20,16 @@
  (synopsis "NATS client")
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends
-  (alcotest :with-test)
   (ocaml
    (> 4.14))
-  dune
-  ; TODO: set explicit versions
-  lwt
-  yojson
-  lwt_ppx)
+  (dune
+   (>= 3.6))
+  (lwt
+   (>= 5.7))
+  (lwt_ppx
+   (>= 2.1))
+  (yojson
+   (>= 2.2))
+  (alcotest :with-test)
+  (alcotest-lwt :with-test))
  (tags (nats)))
