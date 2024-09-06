@@ -20,16 +20,16 @@
  (synopsis "NATS client")
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends
+  (alcotest :with-test)
+  (alcotest-lwt :with-test)
   (ocaml
    (> 4.14))
-  (dune
+  (dune 
    (>= 3.6))
-  (lwt
-   (>= 5.7))
-  (lwt_ppx
-   (>= 2.1))
-  (yojson
-   (>= 2.2))
-  (alcotest :with-test)
-  (alcotest-lwt :with-test))
+  (lwt (
+   >= 5.7))
+  (lwt_ppx (
+   >= 2.1))
+  (yojson (
+   >= 2.2)))
  (tags (nats)))
