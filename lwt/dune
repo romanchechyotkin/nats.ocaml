@@ -1,0 +1,6 @@
+(library
+ (name nats_client_lwt)
+ (public_name nats-client-lwt)
+ (libraries nats-client)
+ (preprocess
+  (pps lwt_ppx)))

@@ -3,6 +3,7 @@
     Protocol {: https://docs.nats.io/reference/reference-protocols/nats-protocol }. *)
 
 open Unix
+open Nats_client
 
 type t = {
   ic : Lwt_io.input_channel;
