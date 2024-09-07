@@ -41,38 +41,18 @@ end
 
 let receive conn =
   let%lwt line = Lwt_io.read_line conn.ic in
+  let m = Message.Incoming.Parser.of_line line in
 
-  let is_starts prefix = String.starts_with ~prefix in
+  match m with
+  | Message.Incoming.Msg msg ->
+      (* read payload *)
+      let%lwt contents = Lwt_io.read ~count:msg.payload.size conn.ic in
+      let%lwt _ = Lwt_io.read ~count:2 conn.ic in
 
-  (* TODO: improve message parsing *)
-  match line with
-  | "PING" -> Lwt.return Message.Incoming.Ping
-  | "PONG" -> Lwt.return Message.Incoming.Pong
-  | "+OK" -> Lwt.return Message.Incoming.Ok
-  | "+ERR" -> Lwt.return Message.Incoming.Err
-  | line when is_starts "INFO" line ->
-      Scanf.sscanf line "INFO %s" (fun json ->
-          Lwt.return @@ Message.Incoming.Info json)
-  | line when is_starts "MSG" line -> (
-      (* it's very bad code >_< *)
-      let read_payload bytes =
-        let%lwt payload = Lwt_io.read ~count:bytes conn.ic in
-        let%lwt _ = Lwt_io.read ~count:2 conn.ic in
-        Lwt.return payload
-      in
-
-      match String.split_on_char ' ' line with
-      | [ _; subject; sid; bytes ] ->
-          let%lwt payload = read_payload (int_of_string bytes) in
-          Lwt.return
-            Message.Incoming.(Msg { subject; sid; payload; reply_to = None })
-      | [ _; subject; sid; reply_to; bytes ] ->
-          let%lwt payload = read_payload (int_of_string bytes) in
-          Lwt.return
-            Message.Incoming.(
-              Msg { subject; sid; payload; reply_to = Some reply_to })
-      | _ -> failwith "invalid MSG message")
-  | line -> failwith @@ "unknown incoming message: " ^ line
+      Lwt.return
+      @@ Message.Incoming.Msg
+           { msg with payload = { msg.payload with contents } }
+  | m -> Lwt.return m
 
 type setting = { host : string; port : int }
 (** NATS server connection settings. *)

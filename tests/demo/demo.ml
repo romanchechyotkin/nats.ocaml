@@ -5,7 +5,7 @@ let main () =
     client#init
       { echo = true; tls_required = false; pedantic = false; verbose = true }
   in
-  Printf.printf "resp: %s\n" resp;
+  Format.printf "resp: %a\n" Yojson.Safe.pp resp;
   flush_all ();
 
   Nats_client_lwt.Subscription.handle client#incoming (fun msg ->
