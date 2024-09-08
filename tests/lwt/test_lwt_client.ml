@@ -1,33 +1,14 @@
 open Alcotest
 
 let init_test_correct_address _ () =
-  Lwt.catch
-    (fun () ->
-      let%lwt _client =
-        Nats_client_lwt.make { port = 4222; host = "127.0.0.1" }
-      in
-      Lwt.return_unit)
-    (function
-      | Nats_client_lwt.Connection.Connection_refused -> Lwt.return_unit
-      | exn ->
-          Alcotest.fail
-            (Printf.sprintf "Unexpected exception: %s" (Printexc.to_string exn)))
+  let%lwt _ = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
+  Lwt.return_unit
 
 let init_test_wrong_address _ () =
-  Lwt.catch
-    (fun () ->
-      let%lwt _client =
-        Nats_client_lwt.make { port = 42222; host = "127.0.0.1" }
-      in
-      let _ =
-        fail "Expected Connection_refused exception, but none was raised"
-      in
-      Lwt.return_unit)
-    (function
-      | Nats_client_lwt.Connection.Connection_refused -> Lwt.return_unit
-      | exn ->
-          Alcotest.fail
-            (Printf.sprintf "Unexpected exception: %s" (Printexc.to_string exn)))
+  try%lwt
+    let%lwt _ = Nats_client_lwt.make { port = 42222; host = "127.0.0.1" } in
+    fail "Expected Connection_refused exception, but none was raised"
+  with Nats_client_lwt.Connection.Connection_refused -> Lwt.return_unit
 
 let connect_test _ () =
   let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
