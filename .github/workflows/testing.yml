@@ -10,7 +10,8 @@ permissions: read-all
 
 jobs:
 
-  unit-test:
+  testing:
+
     permissions:
       attestations: write
       contents: read
@@ -30,6 +31,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Run NATS Server  
+        if: matrix.os == 'ubuntu-latest'
+        run: docker run -d -p 4222:4222 nats:latest
+
       - name: Checkout tree
         uses: actions/checkout@v4
 
@@ -42,4 +47,11 @@ jobs:
 
       - run: opam exec -- dune build
 
-      - run: opam exec -- dune runtest
+      - name: Unit testing
+        run: |
+          opam exec -- dune runtest tests/sid -f
+
+      - name: E2E testing
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          opam exec -- dune runtest tests/client -f
