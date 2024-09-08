@@ -1,12 +1,10 @@
 let main () =
   let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
 
-  let%lwt resp =
-    client#init
-      { echo = true; tls_required = false; pedantic = false; verbose = true }
-  in
-  Format.printf "resp: %a\n" Yojson.Safe.pp resp;
-  flush_all ();
+  Format.printf "info %a\n" Yojson.Safe.pp client#info;
+
+  client#init
+    { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
 
   Nats_client_lwt.Subscription.handle client#incoming (fun msg ->
       Lwt_fmt.printf "LOG: %a\n" Nats_client.Message.Incoming.pp msg;%lwt

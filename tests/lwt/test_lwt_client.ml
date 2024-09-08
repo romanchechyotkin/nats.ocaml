@@ -1,13 +1,14 @@
-open Nats_client
 open Alcotest
 
 let init_test_correct_address _ () =
   Lwt.catch
     (fun () ->
-      let%lwt _client = Nats_client.make { port = 4222; host = "127.0.0.1" } in
+      let%lwt _client =
+        Nats_client_lwt.make { port = 4222; host = "127.0.0.1" }
+      in
       Lwt.return_unit)
     (function
-      | Connection.Connection_refused -> Lwt.return_unit
+      | Nats_client_lwt.Connection.Connection_refused -> Lwt.return_unit
       | exn ->
           Alcotest.fail
             (Printf.sprintf "Unexpected exception: %s" (Printexc.to_string exn)))
@@ -15,34 +16,30 @@ let init_test_correct_address _ () =
 let init_test_wrong_address _ () =
   Lwt.catch
     (fun () ->
-      let%lwt _client = Nats_client.make { port = 42222; host = "127.0.0.1" } in
+      let%lwt _client =
+        Nats_client_lwt.make { port = 42222; host = "127.0.0.1" }
+      in
       let _ =
         fail "Expected Connection_refused exception, but none was raised"
       in
       Lwt.return_unit)
     (function
-      | Connection.Connection_refused -> Lwt.return_unit
+      | Nats_client_lwt.Connection.Connection_refused -> Lwt.return_unit
       | exn ->
           Alcotest.fail
             (Printf.sprintf "Unexpected exception: %s" (Printexc.to_string exn)))
 
 let connect_test _ () =
-  let%lwt client = Nats_client.make { port = 4222; host = "127.0.0.1" } in
-  let%lwt resp =
-    client#init
-      { echo = true; tls_required = false; pedantic = false; verbose = true }
-  in
-  check string "Expected +OK response" "+OK" resp;
+  let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
+  client#init
+    { echo = true; tls_required = false; pedantic = false; verbose = true };%lwt
+
   Lwt.return ()
 
 let connect_test_with_verbose_false _ () =
-  let%lwt client = Nats_client.make { port = 4222; host = "127.0.0.1" } in
-  let%lwt resp =
-    client#init
-      { echo = true; tls_required = false; pedantic = false; verbose = false }
-  in
-
-  if resp == "+OK" then fail "got +OK response";
+  let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
+  client#init
+    { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
 
   Lwt.return ()
 
