@@ -54,4 +54,4 @@ jobs:
       - name: E2E testing
         if: matrix.os == 'ubuntu-latest'
         run: |
-          opam exec -- dune runtest tests/client -f
+          opam exec -- dune runtest tests/lwt -f

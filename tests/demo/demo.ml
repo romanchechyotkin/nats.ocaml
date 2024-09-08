@@ -1,26 +1,24 @@
 let main () =
-  let%lwt client = Nats_client.make { port = 4222; host = "127.0.0.1" } in
+  let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
 
-  let%lwt resp =
-    client#init
-      { echo = true; tls_required = false; pedantic = false; verbose = true }
-  in
-  Printf.printf "resp: %s\n" resp;
-  flush_all ();
+  Format.printf "info %a\n" Yojson.Safe.pp client#info;
 
-  Nats_client.Subscription.handle client#incoming (fun msg ->
+  client#init
+    { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
+
+  Nats_client_lwt.Subscription.handle client#incoming (fun msg ->
       Lwt_fmt.printf "LOG: %a\n" Nats_client.Message.Incoming.pp msg;%lwt
       Lwt_fmt.flush Lwt_fmt.stdout);
 
   let%lwt foo_subj = client#sub ~subject:"FOO" () in
 
-  ( Nats_client.Subscription.handle foo_subj @@ fun msg ->
+  ( Nats_client_lwt.Subscription.handle foo_subj @@ fun msg ->
     Lwt_fmt.printf "HANDLER\n\tFOO: %a\n" Nats_client.Message.Incoming.pp_msg
       msg );
 
   let%lwt front_subj = client#sub ~subject:"FRONT.*" () in
 
-  ( Nats_client.Subscription.handle front_subj @@ fun msg ->
+  ( Nats_client_lwt.Subscription.handle front_subj @@ fun msg ->
     Lwt_fmt.printf "HANDLER\n\tFRONT.*: %a\n"
       Nats_client.Message.Incoming.pp_msg msg );
 

@@ -20,16 +20,17 @@
  (synopsis "NATS client")
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends
-  (alcotest :with-test)
-  (alcotest-lwt :with-test)
-  (ocaml
-   (> 4.14))
-  (dune 
-   (>= 3.6))
-  (lwt (
-   >= 5.7))
-  (lwt_ppx (
-   >= 2.1))
-  (yojson (
-   >= 2.2)))
+  ocaml
+  dune
+  yojson
+  (alcotest :with-test))
  (tags (nats)))
+
+(package
+ (name nats-client-lwt)
+ (synopsis "NATS client based on Lwt library")
+ (depends
+  ocaml
+  lwt
+  lwt_ppx
+  (alcotest-lwt :with-test)))
