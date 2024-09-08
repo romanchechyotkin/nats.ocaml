@@ -2,22 +2,26 @@ open Nats_client
 module Subscription = Subscription
 module Connection = Connection
 
-class client (connection : Connection.t) =
+exception Invalid_response = Connection.Invalid_response
+
+class client ~(info : Yojson.Safe.t) ~(connection : Connection.t) =
   object (self)
     val incoming_messages =
       Lwt_stream.from (fun () ->
           let%lwt message = Connection.receive connection in
           Lwt.return_some message)
 
-    method init msg =
+    val mutable verbose = false
+
+    method init (msg : Message.Initial.t) =
+      verbose <- msg.verbose;
+
+      (* I think the fucking verbose mode should be ignored.
+         This is the most stupid performance overhead. *)
+      Connection.Send.with_verbose ~verbose connection @@ fun () ->
       Connection.Send.connect ~json:(Message.Initial.to_yojson msg) connection;%lwt
-      match%lwt self#receive with
-      | Message.Incoming.Info json -> Lwt.return json
-      | m ->
-          Format.asprintf
-            "expected INFO message after connect, but got '%a' message"
-            Message.Incoming.pp m
-          |> failwith
+
+      Lwt.return_unit
     (** Initialize communication session.  
         
         {b Warning.} Must be the first message. See example. *)
@@ -54,10 +58,17 @@ class client (connection : Connection.t) =
       Lwt_stream.clone incoming_messages
     (** A stream of all incoming messages.  *)
 
+    method info = info
+
     (* TODO: make drain method, unsub all subscribers  *)
   end
 
 (** @raises Connection.Connection_refused *)
 let make settings =
   let%lwt connection = Connection.create settings in
-  Lwt.return @@ new client connection
+  let%lwt info =
+    match%lwt Connection.receive connection with
+    | Message.Incoming.Info info -> Lwt.return info
+    | _ -> raise @@ Invalid_response "INFO message"
+  in
+  Lwt.return @@ new client ~info ~connection
