@@ -13,10 +13,16 @@ class client (connection : Connection.t) =
     method init msg =
       Connection.Send.connect ~json:(Message.Initial.to_yojson msg) connection;%lwt
       match%lwt self#receive with
-      | Message.Incoming.Info json -> Lwt.return json
+      | Message.Incoming.Ok ->
+          Lwt.return
+            (Format.asprintf "%a" Message.Incoming.pp Message.Incoming.Ok)
+      | Message.Incoming.Ping ->
+          Connection.Send.pong connection;%lwt
+          Lwt.return
+            (Format.asprintf "%a" Message.Incoming.pp Message.Incoming.Ok)
       | m ->
           Format.asprintf
-            "expected INFO message after connect, but got '%a' message"
+            "expected +OK message after connect, but got '%a' message"
             Message.Incoming.pp m
           |> failwith
     (** Initialize communication session.  
