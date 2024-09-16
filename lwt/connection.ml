@@ -46,8 +46,6 @@ let close conn =
   (* is it work? *)
   Lwt_unix.close conn.socket
 
-let crlf = "\r\n"
-
 exception Invalid_response of string
 
 let receive conn =
@@ -66,23 +64,31 @@ let receive conn =
   | m -> Lwt.return m
 
 module Send = struct
-  let pong conn = Lwt_io.write conn.oc (Printf.sprintf "PONG%s" crlf)
-  let ping conn = Lwt_io.write conn.oc (Printf.sprintf "PING%s" crlf)
+  let writelnf oc pat = Lwt_io.fprintf oc (pat ^^ "\r\n")
+
+  let writeln oc text =
+    Lwt_io.write oc text;%lwt
+    Lwt_io.write oc "\r\n"
+
+  let writeln' = Fun.flip writeln
+  let pong = writeln' "PING"
+  let ping = writeln' "PONG"
 
   let pub ~subject ~reply_to ~payload conn =
-    Lwt_io.fprintf conn.oc "PUB %s%s %d%s%s%s" subject
+    writelnf conn.oc "PUB %s%s %d" subject
       (Option.fold ~none:"" ~some:(Printf.sprintf " %s") reply_to)
-      (String.length payload) crlf payload crlf
+      (String.length payload);%lwt
+    writeln conn.oc payload
 
   let sub ~subject ~queue_group ~sid conn =
-    Lwt_io.fprintf conn.oc "SUB %s%s %s%s" subject
+    writelnf conn.oc "SUB %s%s %s" subject
       (Option.fold ~none:"" ~some:(Printf.sprintf " %s") queue_group)
-      sid crlf
+      sid
 
   let connect ~json conn =
     (* NOTE: Yojson.Safe.pp gives a bad result.
        TODO: improve performance of JSON encoding (now is bad) *)
-    Lwt_io.fprintf conn.oc "CONNECT %s%s" (Yojson.Safe.to_string json) crlf
+    writelnf conn.oc "CONNECT %s" @@ Yojson.Safe.to_string json
 
   (* TODO: add other *)
 
