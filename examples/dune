@@ -1,0 +1,5 @@
+(executables
+ (names demo)
+ (libraries nats-client-lwt lwt)
+ (preprocess
+  (pps lwt_ppx)))

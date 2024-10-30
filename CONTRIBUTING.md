@@ -6,7 +6,7 @@ FEEL FREE TO CREATE ISSUES AND PRs
 
 ### Requirements
 
-- OCaml > 4.14
+- OCaml >= 4.14
 - Dune
 - OPAM
 
@@ -19,7 +19,7 @@ $ opam install . --deps-only
 
 ### How to start?
 
-See [development demo](./tests/demo/).
+See [examples](./examples/).
 
 ### Tasks 
 
