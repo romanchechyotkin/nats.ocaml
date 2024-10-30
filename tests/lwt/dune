@@ -1,5 +1,0 @@
-(test
- (name test_lwt_client)
- (libraries nats-client-lwt alcotest-lwt)
- (preprocess
-  (pps lwt_ppx)))
