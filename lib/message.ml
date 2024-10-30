@@ -2,7 +2,7 @@
 
 module Incoming = struct
   (* TODO: make type for INFO *)
-  type t = Info of Yojson.Safe.t | Msg of msg | Ping | Pong | OK | ERR
+  type t = Info of Yojson.Safe.t | Msg of msg | Ping | Pong | OK | ERR of err
 
   and msg = {
     subject : string;
@@ -12,6 +12,7 @@ module Incoming = struct
   }
 
   and payload = { size : int; contents : string }
+  and err = string
 
   let pp_msg fmt { subject; sid; reply_to; payload } =
     Format.fprintf fmt "MSG %s %s %s %d %s" subject sid
@@ -24,7 +25,7 @@ module Incoming = struct
     | Ping -> Format.fprintf fmt "PING"
     | Pong -> Format.fprintf fmt "PONG"
     | OK -> Format.fprintf fmt "+OK"
-    | ERR -> Format.fprintf fmt "+ERR"
+    | ERR e -> Format.fprintf fmt "+ERR '%s'" e
 
   (** Generic message line parser.
   
@@ -57,13 +58,21 @@ module Incoming = struct
           }
       | _ -> raise (Invalid_argument "msg line")
 
-    (** @raises Invalid_argument
-        @raises Invalid_argument Yojson.Json_error *)
+    let err_of_line line =
+      (*
+           -ERR 'Unknown Protocol Operation'
+                ^                          ^
+                6                    (len - 1 - 6)
+      *)
+      String.sub line 6 (String.length line - 1 - 6)
+
+    (** @raises Invalid_argument *)
     let of_line = function
       | "PING" -> Ping
       | "PONG" -> Pong
       | "+OK" -> OK
-      | "+ERR" -> ERR
+      | line when String.starts_with ~prefix:"-ERR" line ->
+          ERR (err_of_line line)
       | line when String.starts_with ~prefix:"INFO" line ->
           Info (info_of_line line)
       | line when String.starts_with ~prefix:"MSG" line ->
