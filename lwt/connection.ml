@@ -15,6 +15,9 @@ type t = {
 exception Connection_refused
 (** Raised when failed to make a TCP connection. *)
 
+exception Err_response of string
+(** -ERR message. *)
+
 type setting = { host : string; port : int }
 (** NATS server connection settings. *)
 
@@ -92,12 +95,14 @@ module Send = struct
 
   (* TODO: add other *)
 
+  (** @raises Invalid_response when an incoming message in verbose mode is unknown.
+      @raises Err_response if a -ERR message was received from a server. *)
   let with_verbose ~verbose conn f =
     f ();%lwt
     if verbose then
       match%lwt receive conn with
       | Message.Incoming.OK -> Lwt.return_unit
-      | Message.Incoming.ERR -> failwith "todo"
-      | _ -> raise @@ Invalid_response "expected +OK"
+      | Message.Incoming.ERR msg -> raise @@ Err_response msg
+      | _ -> raise @@ Invalid_response "expected +OK or -ERR"
     else Lwt.return_unit
 end
