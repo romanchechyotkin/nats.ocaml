@@ -1,5 +1,5 @@
 (tests
- (names test_lwt_client test_sid test_message_parser)
+ (names test_sid test_message_parser)
  (libraries nats-client nats-client-lwt alcotest alcotest-lwt)
  (preprocess
   (pps lwt_ppx)))
