@@ -17,7 +17,7 @@
 Currently only a development version is available. You can [pin][opam-pin]
 it using the [OPAM] package manager. 
 ```console
-$ opam nats-client-lwt.pin https://github.com/romanchechyotkin/nats.ocaml.git
+$ opam pin nats-client-lwt.dev https://github.com/romanchechyotkin/nats.ocaml.git
 ```
 
 ### Simple echo example 
