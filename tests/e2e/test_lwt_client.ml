@@ -1,24 +1,30 @@
 open Alcotest
 
 let init_test_correct_address _ () =
-  let%lwt _ = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
+  let%lwt _ = Nats_client_lwt.connect_to { port = 4222; host = "127.0.0.1" } in
   Lwt.return_unit
 
 let init_test_wrong_address _ () =
   try%lwt
-    let%lwt _ = Nats_client_lwt.make { port = 42222; host = "127.0.0.1" } in
+    let%lwt _ =
+      Nats_client_lwt.connect_to { port = 42222; host = "127.0.0.1" }
+    in
     fail "Expected Connection_refused exception, but none was raised"
   with Nats_client_lwt.Connection.Connection_refused -> Lwt.return_unit
 
 let connect_test _ () =
-  let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
+  let%lwt client =
+    Nats_client_lwt.connect_to { port = 4222; host = "127.0.0.1" }
+  in
   client#init
     { echo = true; tls_required = false; pedantic = false; verbose = true };%lwt
 
   Lwt.return ()
 
 let connect_test_with_verbose_false _ () =
-  let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
+  let%lwt client =
+    Nats_client_lwt.connect_to { port = 4222; host = "127.0.0.1" }
+  in
   client#init
     { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
 

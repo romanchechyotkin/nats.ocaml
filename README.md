@@ -17,7 +17,7 @@
 Currently only a development version is available. You can [pin][opam-pin]
 it using the [OPAM] package manager. 
 ```console
-$ opam nats-client-lwt.pin https://github.com/romanchechyotkin/nats.ocaml.git
+$ opam pin nats-client-lwt.dev https://github.com/romanchechyotkin/nats.ocaml.git
 ```
 
 ### Simple echo example 
@@ -28,12 +28,17 @@ Take it from [`examples/simple.ml`](./examples/simple.ml).
 ```ocaml
 let () =
   Lwt_main.run @@
-  (* Make connection with NATS server. *)
-  let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
 
-  (* Initialize connection with parameters. Required. *)
-  client#init
-    { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
+  (* Connect to a NATS server. *)
+  Nats_client_lwt.with_connect_to ~port:4222 ~host:"127.0.0.1"
+       ~init:
+         {
+           echo = true;
+           tls_required = false;
+           pedantic = false;
+           verbose = false;
+         }
+  @@ fun client ->
 
   (* Subscribe to HELLO subject. *)
   let%lwt hello_subject = client#sub ~subject:"HELLO" () in
@@ -45,8 +50,7 @@ let () =
   (* Send "Hello World" message to HELLO subject. *)
   client#pub ~subject:"HELLO" "Hello World";%lwt
 
-  Lwt_unix.sleep 0.1;%lwt
-  client#close
+  Lwt_unix.sleep 0.1
 ```
 
 ```console

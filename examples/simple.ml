@@ -1,13 +1,15 @@
 let () =
   Lwt_main.run
-  @@
-  (* Make connection with NATS server. *)
-  let%lwt client = Nats_client_lwt.make { port = 4222; host = "127.0.0.1" } in
-
-  (* Initialize connection with parameters. Required. *)
-  client#init
-    { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
-
+  (* Connect to a NATS server. *)
+  @@ Nats_client_lwt.with_connect_to ~port:4222 ~host:"127.0.0.1"
+       ~init:
+         {
+           echo = true;
+           tls_required = false;
+           pedantic = false;
+           verbose = false;
+         }
+  @@ fun client ->
   (* Subscribe to HELLO subject. *)
   let%lwt hello_subject = client#sub ~subject:"HELLO" () in
 
@@ -18,5 +20,4 @@ let () =
   (* Send "Hello World" message to HELLO subject. *)
   client#pub ~subject:"HELLO" "Hello World";%lwt
 
-  Lwt_unix.sleep 0.1;%lwt
-  client#close
+  Lwt_unix.sleep 0.1
