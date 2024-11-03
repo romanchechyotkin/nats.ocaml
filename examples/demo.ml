@@ -1,6 +1,6 @@
 let main () =
   let%lwt client =
-    Nats_client_lwt.connect_to { port = 4222; host = "127.0.0.1" }
+    Nats_client_lwt.connect ~addr:{ port = 4222; host = "127.0.0.1" } ()
   in
 
   Format.printf "info %a\n" Yojson.Safe.pp client#info;

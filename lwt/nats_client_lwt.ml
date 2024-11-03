@@ -64,18 +64,24 @@ class client ~(info : Yojson.Safe.t) ~(connection : Connection.t) =
   end
 
 (** @raises Connection.Connection_refused *)
-let connect_to settings =
-  let%lwt connection = Connection.create settings in
+let connect ?switch ?settings ~addr () =
+  let%lwt connection = Connection.create ?switch addr in
   let%lwt info =
     match%lwt Connection.receive connection with
     | Message.Incoming.Info info -> Lwt.return info
     | _ -> raise @@ Invalid_response "INFO message"
   in
-  Lwt.return @@ new client ~info ~connection
+
+  let client = new client ~info ~connection in
+
+  (match settings with
+  | Some settings -> client#init settings
+  | _ -> Lwt.return_unit);%lwt
+
+  Lwt.return client
 
 (** @raises Connection.Connection_refused *)
-let with_connect_to ~port ~host ~(init : Message.Initial.t) f =
-  let%lwt client = connect_to { port; host } in
-  client#init init;%lwt
+let with_connect ~addr ~(settings : Message.Initial.t) f =
+  let%lwt client = connect ~settings ~addr () in
   f client;%lwt
   client#close

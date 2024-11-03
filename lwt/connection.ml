@@ -18,13 +18,13 @@ exception Connection_refused
 exception Err_response of string
 (** -ERR message. *)
 
-type setting = { host : string; port : int }
+type nats_server_addr = { host : string; port : int }
 (** NATS server connection settings. *)
 
 (** Create TCP connection for communicate by NATS protocol. 
 
     @raises Connection_refused *)
-let create { host; port } =
+let create ?switch { host; port } =
   try%lwt
     (* Create a TCP socket *)
     let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
@@ -35,6 +35,7 @@ let create { host; port } =
     let server_socket_address = ADDR_INET (server_address, server_port) in
 
     Lwt_unix.connect socket_fd server_socket_address;%lwt
+    Lwt_switch.add_hook switch (fun () -> Lwt_unix.close socket_fd);
 
     (* Wrap raw file descriptors into channel abstractions. *)
     let ic = Lwt_io.of_fd ~mode:Lwt_io.Input socket_fd in
