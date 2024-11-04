@@ -96,4 +96,14 @@ module Initial = struct
         ("echo", `Bool t.echo);
         ("lang", `String "ocaml");
       ]
+
+  let default =
+    { verbose = false; pedantic = false; tls_required = false; echo = false }
+
+  let of_poly_variants v =
+    List.fold_left
+      (fun m -> function
+        | `Echo -> { m with echo = true }
+        | `Verbose -> { m with verbose = true })
+      default v
 end
