@@ -9,7 +9,8 @@ let main () =
     (Nats_client.Incoming_message.INFO.yojson_of_t client.info
     |> Yojson.Safe.to_string);
 
-  Nats_client_lwt.Subscription.handle client.incoming_messages (fun msg ->
+  Nats_client_lwt.Subscription.handle_stream client.incoming_messages
+    (fun msg ->
       Lwt_fmt.printf "LOG: %a\n" Nats_client.Incoming_message.pp msg;%lwt
       Lwt_fmt.flush Lwt_fmt.stdout);
 

@@ -71,14 +71,17 @@ let sub ?switch client ~subject ?(sid : Sid.t option) () =
   (* auto unsubscribe *)
   Lwt_switch.add_hook switch (fun () -> unsub client sid);
 
-  Lwt.return
-  @@ Lwt_stream.filter_map
-       (function
-         | Incoming_message.MSG msg
-         (* Is it enough to check a message's SID? *)
-           when msg.sid = sid ->
-             Some msg
-         | _ -> None)
-       client.incoming_messages
+  let messages =
+    Lwt_stream.filter_map
+      (function
+        | Incoming_message.MSG msg
+        (* Is it enough to check a message's SID? *)
+          when msg.sid = sid ->
+            Some msg
+        | _ -> None)
+      client.incoming_messages
+  in
+
+  Lwt.return Subscription.{ sid; subject; messages }
 
 (* TODO: make drain method, unsub all subscribers  *)

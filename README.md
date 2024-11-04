@@ -38,12 +38,12 @@ let () =
   in
 
   (* Subscribe to HELLO subject. *)
-  let%lwt hello_subject =
+  let%lwt hello_subscr =
     Nats_client_lwt.sub ~switch client ~subject:"HELLO" ()
   in
 
   (* Handle incoming HELLO subject messages. *)
-  Nats_client_lwt.Subscription.handle hello_subject (fun msg ->
+  Nats_client_lwt.Subscription.handle hello_subscr (fun msg ->
       Lwt_io.printf "HELLO: %s\n" msg.payload.contents);
 
   (* Send "Hello World" message to HELLO subject. *)

@@ -1,11 +1,13 @@
 open Nats_client
 (** Utils for handle subscriptions. *)
 
-type messages = Incoming_message.msg Lwt_stream.t
-(** Alias. *)
+type t = {
+  sid : Sid.t;
+  subject : string;
+  messages : Incoming_message.msg Lwt_stream.t;
+}
 
-(** Asynchronous handling of incoming messages.  *)
-let handle stream f =
+let handle_stream stream f =
   Lwt.dont_wait
     (fun () -> Lwt_stream.iter_s f stream)
     (function
@@ -13,3 +15,6 @@ let handle stream f =
       | Unix.Unix_error (Unix.EBADF, "check_descriptor", "") -> ()
       (* Otherwise, throw the exception above. *)
       | e -> raise e)
+
+(** Asynchronous handling of incoming messages.  *)
+let handle { messages; _ } f = handle_stream messages f
