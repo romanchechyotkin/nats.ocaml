@@ -4,11 +4,19 @@ FEEL FREE TO CREATE ISSUES AND PRs
 
 ## Development
 
-### Requirements
+### How to start?
+
+#### Requirements
 
 - OCaml >= 4.14
 - Dune
 - OPAM
+
+#### Use development branch
+
+Use the `dev` branch.
+
+#### Setup development environment
 
 ```sh
 # Create a switch for project
@@ -17,7 +25,7 @@ $ opam switch create . --deps-only
 $ opam install . --deps-only
 ```
 
-### How to start?
+#### Next...
 
 See [examples](./examples/).
 
@@ -25,11 +33,11 @@ See [examples](./examples/).
 
 See [nats.rs](https://docs.rs/nats/latest/nats/).
 
-### Tasks 
+## Tasks 
 
 You can find open tasks at [project board](https://github.com/users/romanchechyotkin/projects/1) 
 and [issues page](https://github.com/romanchechyotkin/nats.ocaml/issues).
 
-### Questions
+## Questions
 
 If you have any questions, please contact @romanchechyotkin or @dx3mod. 
