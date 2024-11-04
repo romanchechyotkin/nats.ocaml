@@ -17,10 +17,18 @@ let send_initialize_message client (message : Initial_message.t) =
     ~json:(Initial_message.to_yojson message)
     client.connection
 
-(** @raises Connection.Connection_refused *)
+(** Connect to a NATS server using the [uri] address. 
+
+    @raises Connection.Connection_refused
+    @raises Connection.Invalid_response 
+    @raises Invalid_argument if [uri] has no host. *)
 let connect ?switch ?settings uri =
   let port = Uri.port uri |> Option.value ~default:4222 in
-  let host = Uri.host uri |> Option.get in
+  let host =
+    match Uri.host uri with
+    | Some host -> host
+    | None -> raise (Invalid_argument "host is none")
+  in
 
   let%lwt connection = Connection.create ?switch ~host ~port () in
   let%lwt info =
