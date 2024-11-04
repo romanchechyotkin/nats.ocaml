@@ -18,7 +18,7 @@ let main =
   in
 
   (* Publishes 'hello' message to three subjects. *)
-  Lwt_list.iter_p
+  Lwt_list.iter_s
     (fun subject -> Nats_client_lwt.pub client ~subject "hello")
     [ "greet.sue"; "greet.bob"; "greet.pam" ];%lwt
 

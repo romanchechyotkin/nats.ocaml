@@ -46,7 +46,7 @@ let main =
   in
 
   (* Publishes 'hello' message to three subjects. *)
-  Lwt_list.iter_p
+  Lwt_list.iter_s
     (fun subject -> Nats_client_lwt.pub client ~subject "hello")
     [ "greet.sue"; "greet.bob"; "greet.pam" ];%lwt
 
@@ -64,6 +64,12 @@ Take it from [`examples/natsbyexample/publish_subscribe.ml`](./examples/natsbyex
 ```console
 $ docker start -a nats-server
 $ dune exec ./examples/natsbyexample/publish_subscribe.exe
+```
+
+```
+'hello' received on greet.sue       
+'hello' received on greet.bob
+'hello' received on greet.pam
 ```
 
 ## References
