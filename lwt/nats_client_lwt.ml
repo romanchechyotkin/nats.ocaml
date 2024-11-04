@@ -4,7 +4,7 @@ module Connection = Connection
 
 type client = {
   connection : Connection.t;
-  info : Yojson.Safe.t;
+  info : Incoming_message.INFO.t;
   incoming_messages : Incoming_message.t Lwt_stream.t;
 }
 
@@ -33,7 +33,7 @@ let connect ?switch ?settings uri =
   let%lwt connection = Connection.create ?switch ~host ~port () in
   let%lwt info =
     match%lwt Connection.receive connection with
-    | Incoming_message.Info info -> Lwt.return info
+    | Incoming_message.INFO info -> Lwt.return info
     | _ -> raise @@ Connection.Invalid_response "INFO message"
   in
 
@@ -67,7 +67,7 @@ let sub client ~subject ?(sid : Sid.t option) () =
   Lwt.return
   @@ Lwt_stream.filter_map
        (function
-         | Incoming_message.Msg msg
+         | Incoming_message.MSG msg
          (* Is it enough to check a message's SID? *)
            when msg.sid = sid ->
              Some msg

@@ -5,7 +5,9 @@ let main () =
       (Uri.of_string "tcp://127.0.0.1:4222")
   in
 
-  Format.printf "info %a\n" Yojson.Safe.pp client.info;
+  Format.printf "info %s\n"
+    (Nats_client.Incoming_message.INFO.yojson_of_t client.info
+    |> Yojson.Safe.to_string);
 
   Nats_client_lwt.Subscription.handle client.incoming_messages (fun msg ->
       Lwt_fmt.printf "LOG: %a\n" Nats_client.Incoming_message.pp msg;%lwt
