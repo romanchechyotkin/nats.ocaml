@@ -6,7 +6,7 @@ let main =
   (* Connect to a NATS server by address 127.0.0.1:4222 with ECHO flag. *)
   let%lwt client =
     Nats_client_lwt.connect ~switch ~settings:[ `Echo ]
-      (Uri.of_string "tcp://127.0.0.1:4222")
+      (Uri.of_string "nats://127.0.0.1:4222")
   in
 
   (* Publish 'hello' message to greet.joe subject. *)

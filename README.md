@@ -8,7 +8,7 @@
 [License-Image]: https://img.shields.io/badge/License-Apache2-blue.svg
 
 > [!WARNING]
-> In active development!
+> In active development! You can view the progress [here](https://github.com/users/romanchechyotkin/projects/1).
 
 ## Usage
 
@@ -20,7 +20,7 @@ it using the [OPAM] package manager.
 $ opam pin nats-client-lwt.dev https://github.com/romanchechyotkin/nats.ocaml.git
 ```
 
-### Simple echo example 
+### Publish-Subscribe example 
 
 This example shows how to publish to a subject and handle its messages. 
 
@@ -34,7 +34,7 @@ let main =
   (* Connect to a NATS server by address 127.0.0.1:4222 with ECHO flag. *)
   let%lwt client =
     Nats_client_lwt.connect ~switch ~settings:[ `Echo ]
-      (Uri.of_string "tcp://127.0.0.1:4222")
+      (Uri.of_string "nats://127.0.0.1:4222")
   in
 
   (* Publish 'hello' message to greet.joe subject. *)
