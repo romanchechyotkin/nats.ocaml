@@ -21,6 +21,10 @@ $ opam install . --deps-only
 
 See [examples](./examples/).
 
+### How to design library API?
+
+See [nats.rs](https://docs.rs/nats/latest/nats/).
+
 ### Tasks 
 
 You can find open tasks at [project board](https://github.com/users/romanchechyotkin/projects/1) 
