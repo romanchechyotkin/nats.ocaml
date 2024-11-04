@@ -1,10 +1,9 @@
 let () =
   Lwt_main.run @@ Lwt_switch.with_switch
   @@ fun switch ->
-  (* Connect to a NATS server. *)
+  (* Connect to a NATS server by address 127.0.0.1:4222 with ECHO flag. *)
   let%lwt client =
-    let settings = Nats_client.settings ~echo:true () in
-    Nats_client_lwt.connect ~switch ~settings
+    Nats_client_lwt.connect ~switch ~settings:[ `Echo ]
       (Uri.of_string "tcp://127.0.0.1:4222")
   in
 

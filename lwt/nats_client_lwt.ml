@@ -38,7 +38,8 @@ let connect ?switch ?settings uri =
   let client = { connection; info; incoming_messages } in
 
   (match settings with
-  | Some settings -> send_initialize_message client settings
+  | Some settings ->
+      send_initialize_message client (Initial_message.of_poly_variants settings)
   | None -> Lwt.return_unit);%lwt
 
   Lwt.return client
