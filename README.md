@@ -38,7 +38,9 @@ let () =
   in
 
   (* Subscribe to HELLO subject. *)
-  let%lwt hello_subject = Nats_client_lwt.sub client ~subject:"HELLO" () in
+  let%lwt hello_subject =
+    Nats_client_lwt.sub ~switch client ~subject:"HELLO" ()
+  in
 
   (* Handle incoming HELLO subject messages. *)
   Nats_client_lwt.Subscription.handle hello_subject (fun msg ->

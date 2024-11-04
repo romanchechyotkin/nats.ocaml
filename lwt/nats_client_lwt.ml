@@ -55,14 +55,21 @@ let connect ?switch ?settings uri =
 (** Close socket connection.  *)
 let close client = Connection.close client.connection
 
-(** [pub ~subject ?reply_to payload] publish a message. *)
+(** [pub client ~subject ?reply_to payload] publish a message. *)
 let pub client ~subject ?reply_to payload =
   Connection.Send.pub ~subject ~reply_to ~payload client.connection
 
-(** [sub ~subject ?sid ()] subscribe on the subject and get stream. *)
-let sub client ~subject ?(sid : Sid.t option) () =
+(** [unsub client ?max_msgs sid] unsubscribe from subject. *)
+let unsub client ?max_msgs sid =
+  Connection.Send.unsub client.connection ?max_msgs sid
+
+(** [sub client ~subject ?sid ()] subscribe on the subject and get stream. *)
+let sub ?switch client ~subject ?(sid : Sid.t option) () =
   let sid = Option.value ~default:(Sid.create 9) sid in
   Connection.Send.sub ~subject ~sid ~queue_group:None client.connection;%lwt
+
+  (* auto unsubscribe *)
+  Lwt_switch.add_hook switch (fun () -> unsub client sid);
 
   Lwt.return
   @@ Lwt_stream.filter_map

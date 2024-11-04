@@ -86,6 +86,10 @@ module Send = struct
       (Option.fold ~none:"" ~some:(Printf.sprintf " %s") queue_group)
       sid
 
+  let unsub conn ?max_msgs (sid : Sid.t) =
+    writelnf conn.oc "UNSUB %s%s" sid
+      (Option.fold max_msgs ~none:"" ~some:(Printf.sprintf " %d"))
+
   let connect ~json conn =
     (* NOTE: Yojson.Safe.pp gives a bad result.
        TODO: improve performance of JSON encoding (now is bad) *)
