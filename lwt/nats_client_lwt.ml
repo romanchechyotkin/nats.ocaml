@@ -14,7 +14,7 @@ let send_initialize_message client (message : Initial_message.t) =
   Connection.Send.with_verbose ~verbose:message.verbose client.connection
   @@ fun () ->
   Connection.Send.connect
-    ~json:(Initial_message.to_yojson message)
+    ~json:(Initial_message.yojson_of_t message)
     client.connection
 
 (** Connect to a NATS server using the [uri] address. 

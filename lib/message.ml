@@ -117,19 +117,11 @@ end
 
 (** Initial message. *)
 module Initial = struct
-  type t = { verbose : bool; pedantic : bool; tls_required : bool; echo : bool }
-  (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
+  open Ppx_yojson_conv_lib.Yojson_conv
 
-  (* TODO: for encoding/decoding JSON should use [ppx_deriving_yojson] preprocessor. *)
-  let to_yojson t : Yojson.Safe.t =
-    `Assoc
-      [
-        ("verbose", `Bool t.verbose);
-        ("pedantic", `Bool t.pedantic);
-        ("tls_required", `Bool t.tls_required);
-        ("echo", `Bool t.echo);
-        ("lang", `String "ocaml");
-      ]
+  type t = { verbose : bool; pedantic : bool; tls_required : bool; echo : bool }
+  [@@deriving yojson] [@@yojson.allow_extra_fields]
+  (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
 
   let default =
     { verbose = false; pedantic = false; tls_required = false; echo = false }
