@@ -1,46 +1,42 @@
 let main () =
+  Lwt_switch.with_switch @@ fun switch ->
   let%lwt client =
-    Nats_client_lwt.connect ~addr:{ port = 4222; host = "127.0.0.1" } ()
+    let settings = Nats_client.settings ~echo:true () in
+    Nats_client_lwt.connect ~switch ~settings
+      (Uri.of_string "tcp://127.0.0.1:4222")
   in
 
-  Format.printf "info %a\n" Yojson.Safe.pp client#info;
+  Format.printf "info %a\n" Yojson.Safe.pp client.info;
 
-  client#init
-    { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
-
-  Nats_client_lwt.Subscription.handle client#incoming (fun msg ->
-      Lwt_fmt.printf "LOG: %a\n" Nats_client.Message.Incoming.pp msg;%lwt
+  Nats_client_lwt.Subscription.handle client.incoming_messages (fun msg ->
+      Lwt_fmt.printf "LOG: %a\n" Nats_client.Incoming_message.pp msg;%lwt
       Lwt_fmt.flush Lwt_fmt.stdout);
 
-  let%lwt foo_subj = client#sub ~subject:"FOO" () in
+  let%lwt foo_subj = Nats_client_lwt.sub client ~subject:"FOO" () in
 
   ( Nats_client_lwt.Subscription.handle foo_subj @@ fun msg ->
-    Lwt_fmt.printf "HANDLER\n\tFOO: %a\n" Nats_client.Message.Incoming.pp_msg
+    Lwt_fmt.printf "HANDLER\n\tFOO: %a\n" Nats_client.Incoming_message.pp_msg
       msg );
 
-  let%lwt front_subj = client#sub ~subject:"FRONT.*" () in
+  let%lwt front_subj = Nats_client_lwt.sub client ~subject:"FRONT.*" () in
 
   ( Nats_client_lwt.Subscription.handle front_subj @@ fun msg ->
     Lwt_fmt.printf "HANDLER\n\tFRONT.*: %a\n"
-      Nats_client.Message.Incoming.pp_msg msg );
+      Nats_client.Incoming_message.pp_msg msg );
 
-  client#pub ~subject:"FOO" "HELLO NATS!";%lwt
+  Nats_client_lwt.pub client ~subject:"FOO" "HELLO NATS!";%lwt
 
-  client#pub ~subject:"FRONT.DOOR" "HELLO NATS!";%lwt
+  Nats_client_lwt.pub client ~subject:"FRONT.DOOR" "HELLO NATS!";%lwt
 
   Lwt_unix.sleep 1.;%lwt
 
-  client#pub ~subject:"FRONT.1" ~reply_to:"FOO" "HELLO NATS!";%lwt
-  client#pub ~subject:"FRONT.2" ~reply_to:"FOO" "HELLO NATS!";%lwt
-  client#pub ~subject:"FRONT.3" ~reply_to:"FOO" "HELLO NATS!";%lwt
+  Nats_client_lwt.pub client ~subject:"FRONT.1" ~reply_to:"FOO" "HELLO NATS!";%lwt
+  Nats_client_lwt.pub client ~subject:"FRONT.2" ~reply_to:"FOO" "HELLO NATS!";%lwt
+  Nats_client_lwt.pub client ~subject:"FRONT.3" ~reply_to:"FOO" "HELLO NATS!";%lwt
 
-  client#pub ~subject:"FOO" "HELLO NATS!";%lwt
+  Nats_client_lwt.pub client ~subject:"FOO" "HELLO NATS!";%lwt
 
   flush_all ();
-  Lwt_unix.sleep 1.;%lwt
-
-  client#close;%lwt
-
-  Lwt.return_unit
+  Lwt_unix.sleep 1.
 
 let () = Lwt_main.run @@ main ()

@@ -1,37 +1,33 @@
 open Alcotest
 
+let default_uri = Uri.of_string "tcp://127.0.0.1:4222"
+
 let init_test_correct_address _ () =
-  let%lwt _ =
-    Nats_client_lwt.connect ~addr:{ port = 4222; host = "127.0.0.1" } ()
-  in
+  let%lwt _ = Nats_client_lwt.connect default_uri in
 
   Lwt.return_unit
 
 let init_test_wrong_address _ () =
   try%lwt
     let%lwt _ =
-      Nats_client_lwt.connect ~addr:{ port = 4000; host = "127.0.0.1" } ()
+      Nats_client_lwt.connect (Uri.of_string "tcp://127.0.0.1:8000")
     in
 
     fail "Expected Connection_refused exception, but none was raised"
   with Nats_client_lwt.Connection.Connection_refused -> Lwt.return_unit
 
 let connect_test _ () =
-  let%lwt client =
-    Nats_client_lwt.connect ~addr:{ port = 4222; host = "127.0.0.1" } ()
-  in
+  let%lwt client = Nats_client_lwt.connect default_uri in
 
-  client#init
+  Nats_client_lwt.send_initialize_message client
     { echo = true; tls_required = false; pedantic = false; verbose = true };%lwt
 
   Lwt.return ()
 
 let connect_test_with_verbose_false _ () =
-  let%lwt client =
-    Nats_client_lwt.connect ~addr:{ port = 4222; host = "127.0.0.1" } ()
-  in
+  let%lwt client = Nats_client_lwt.connect default_uri in
 
-  client#init
+  Nats_client_lwt.send_initialize_message client
     { echo = true; tls_required = false; pedantic = false; verbose = false };%lwt
 
   Lwt.return ()

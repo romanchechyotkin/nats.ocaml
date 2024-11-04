@@ -2,86 +2,67 @@ open Nats_client
 module Subscription = Subscription
 module Connection = Connection
 
-exception Invalid_response = Connection.Invalid_response
+type client = {
+  connection : Connection.t;
+  info : Yojson.Safe.t;
+  incoming_messages : Incoming_message.t Lwt_stream.t;
+}
 
-class client ~(info : Yojson.Safe.t) ~(connection : Connection.t) =
-  object (self)
-    val incoming_messages =
-      Lwt_stream.from (fun () ->
-          let%lwt message = Connection.receive connection in
-          Lwt.return_some message)
-
-    val mutable verbose = false
-
-    method init (msg : Message.Initial.t) =
-      verbose <- msg.verbose;
-
-      (* I think the fucking verbose mode should be ignored.
-         This is the most stupid performance overhead. *)
-      Connection.Send.with_verbose ~verbose connection @@ fun () ->
-      Connection.Send.connect ~json:(Message.Initial.to_yojson msg) connection;%lwt
-
-      Lwt.return_unit
-    (** Initialize communication session.  
-        
-        {b Warning.} Must be the first message. See example. *)
-
-    method pub ~subject ?reply_to payload =
-      Connection.Send.pub ~subject ~reply_to ~payload connection
-    (** [pub ~subject ?reply_to payload] publish a message. *)
-
-    method sub ~subject ?(sid : Sid.t option) () =
-      let sid = Option.value ~default:(Sid.create 9) sid in
-      Connection.Send.sub ~subject ~sid ~queue_group:None connection;%lwt
-
-      Lwt.return
-      @@ Lwt_stream.filter_map
-           (function
-             | Message.Incoming.Msg msg
-             (* Is it enough to check a message's SID? *)
-               when msg.sid = sid ->
-                 Some msg
-             | _ -> None)
-           self#incoming
-
-    (** [sub ~subject ?sid ()] subscribe on the subject and get stream. *)
-
-    method receive = Connection.receive connection
-    (** {b Warning.} Can break the flow of messages? *)
-
-    method close = Connection.close connection
-    (** Close socket connection.  *)
-
-    method incoming : Message.Incoming.t Lwt_stream.t =
-      (* NOTE: is it okay? (performance issue)
-               Anyway, I don't know how to do it any other way :< *)
-      Lwt_stream.clone incoming_messages
-    (** A stream of all incoming messages.  *)
-
-    method info = info
-
-    (* TODO: make drain method, unsub all subscribers  *)
-  end
+let send_initialize_message client (message : Initial_message.t) =
+  (* I think the fucking verbose mode should be ignored.
+     This is the most stupid performance overhead. *)
+  Connection.Send.with_verbose ~verbose:message.verbose client.connection
+  @@ fun () ->
+  Connection.Send.connect
+    ~json:(Initial_message.to_yojson message)
+    client.connection
 
 (** @raises Connection.Connection_refused *)
-let connect ?switch ?settings ~addr () =
-  let%lwt connection = Connection.create ?switch addr in
+let connect ?switch ?settings uri =
+  let port = Uri.port uri |> Option.value ~default:4222 in
+  let host = Uri.host uri |> Option.get in
+
+  let%lwt connection = Connection.create ?switch ~host ~port () in
   let%lwt info =
     match%lwt Connection.receive connection with
-    | Message.Incoming.Info info -> Lwt.return info
-    | _ -> raise @@ Invalid_response "INFO message"
+    | Incoming_message.Info info -> Lwt.return info
+    | _ -> raise @@ Connection.Invalid_response "INFO message"
   in
 
-  let client = new client ~info ~connection in
+  let incoming_messages =
+    Lwt_stream.from (fun () ->
+        let%lwt message = Connection.receive connection in
+        Lwt.return_some message)
+  in
+
+  let client = { connection; info; incoming_messages } in
 
   (match settings with
-  | Some settings -> client#init settings
-  | _ -> Lwt.return_unit);%lwt
+  | Some settings -> send_initialize_message client settings
+  | None -> Lwt.return_unit);%lwt
 
   Lwt.return client
 
-(** @raises Connection.Connection_refused *)
-let with_connect ~addr ~(settings : Message.Initial.t) f =
-  let%lwt client = connect ~settings ~addr () in
-  f client;%lwt
-  client#close
+(** Close socket connection.  *)
+let close client = Connection.close client.connection
+
+(** [pub ~subject ?reply_to payload] publish a message. *)
+let pub client ~subject ?reply_to payload =
+  Connection.Send.pub ~subject ~reply_to ~payload client.connection
+
+(** [sub ~subject ?sid ()] subscribe on the subject and get stream. *)
+let sub client ~subject ?(sid : Sid.t option) () =
+  let sid = Option.value ~default:(Sid.create 9) sid in
+  Connection.Send.sub ~subject ~sid ~queue_group:None client.connection;%lwt
+
+  Lwt.return
+  @@ Lwt_stream.filter_map
+       (function
+         | Incoming_message.Msg msg
+         (* Is it enough to check a message's SID? *)
+           when msg.sid = sid ->
+             Some msg
+         | _ -> None)
+       client.incoming_messages
+
+(* TODO: make drain method, unsub all subscribers  *)

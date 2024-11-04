@@ -33,4 +33,5 @@
   ocaml
   lwt
   lwt_ppx
+  uri
   (alcotest-lwt :with-test)))

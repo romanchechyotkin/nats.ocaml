@@ -1,7 +1,7 @@
 open Nats_client
 (** Utils for handle subscriptions. *)
 
-type messages = Message.Incoming.msg Lwt_stream.t
+type messages = Incoming_message.msg Lwt_stream.t
 (** Alias. *)
 
 (** Asynchronous handling of incoming messages.  *)

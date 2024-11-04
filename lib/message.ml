@@ -96,4 +96,7 @@ module Initial = struct
         ("echo", `Bool t.echo);
         ("lang", `String "ocaml");
       ]
+
+  let default =
+    { verbose = false; pedantic = false; tls_required = false; echo = false }
 end

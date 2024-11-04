@@ -18,13 +18,10 @@ exception Connection_refused
 exception Err_response of string
 (** -ERR message. *)
 
-type nats_server_addr = { host : string; port : int }
-(** NATS server connection settings. *)
-
 (** Create TCP connection for communicate by NATS protocol. 
 
     @raises Connection_refused *)
-let create ?switch { host; port } =
+let create ?switch ~host ~port () =
   try%lwt
     (* Create a TCP socket *)
     let socket_fd = Lwt_unix.socket PF_INET SOCK_STREAM 0 in
@@ -54,16 +51,16 @@ exception Invalid_response of string
 
 let receive conn =
   let%lwt line = Lwt_io.read_line conn.ic in
-  let m = Message.Incoming.Parser.of_line line in
+  let m = Incoming_message.Parser.of_line line in
 
   match m with
-  | Message.Incoming.Msg msg ->
+  | Incoming_message.Msg msg ->
       (* read payload *)
       let%lwt contents = Lwt_io.read ~count:msg.payload.size conn.ic in
       let%lwt _ = Lwt_io.read ~count:2 conn.ic in
 
       Lwt.return
-      @@ Message.Incoming.Msg
+      @@ Incoming_message.Msg
            { msg with payload = { msg.payload with contents } }
   | m -> Lwt.return m
 
@@ -102,8 +99,8 @@ module Send = struct
     f ();%lwt
     if verbose then
       match%lwt receive conn with
-      | Message.Incoming.OK -> Lwt.return_unit
-      | Message.Incoming.ERR msg -> raise @@ Err_response msg
+      | Incoming_message.OK -> Lwt.return_unit
+      | Incoming_message.ERR msg -> raise @@ Err_response msg
       | _ -> raise @@ Invalid_response "expected +OK or -ERR"
     else Lwt.return_unit
 end
