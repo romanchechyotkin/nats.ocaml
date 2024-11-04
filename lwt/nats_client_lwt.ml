@@ -4,7 +4,7 @@ module Connection = Connection
 
 type client = {
   connection : Connection.t;
-  info : Yojson.Safe.t;
+  info : Incoming_message.INFO.t;
   incoming_messages : Incoming_message.t Lwt_stream.t;
 }
 
@@ -14,7 +14,7 @@ let send_initialize_message client (message : Initial_message.t) =
   Connection.Send.with_verbose ~verbose:message.verbose client.connection
   @@ fun () ->
   Connection.Send.connect
-    ~json:(Initial_message.to_yojson message)
+    ~json:(Initial_message.yojson_of_t message)
     client.connection
 
 (** Connect to a NATS server using the [uri] address. 
@@ -33,7 +33,7 @@ let connect ?switch ?settings uri =
   let%lwt connection = Connection.create ?switch ~host ~port () in
   let%lwt info =
     match%lwt Connection.receive connection with
-    | Incoming_message.Info info -> Lwt.return info
+    | Incoming_message.INFO info -> Lwt.return info
     | _ -> raise @@ Connection.Invalid_response "INFO message"
   in
 
@@ -55,23 +55,33 @@ let connect ?switch ?settings uri =
 (** Close socket connection.  *)
 let close client = Connection.close client.connection
 
-(** [pub ~subject ?reply_to payload] publish a message. *)
+(** [pub client ~subject ?reply_to payload] publish a message. *)
 let pub client ~subject ?reply_to payload =
   Connection.Send.pub ~subject ~reply_to ~payload client.connection
 
-(** [sub ~subject ?sid ()] subscribe on the subject and get stream. *)
-let sub client ~subject ?(sid : Sid.t option) () =
+(** [unsub client ?max_msgs sid] unsubscribe from subject. *)
+let unsub client ?max_msgs sid =
+  Connection.Send.unsub client.connection ?max_msgs sid
+
+(** [sub client ~subject ?sid ()] subscribe on the subject and get stream. *)
+let sub ?switch client ~subject ?(sid : Sid.t option) () =
   let sid = Option.value ~default:(Sid.create 9) sid in
   Connection.Send.sub ~subject ~sid ~queue_group:None client.connection;%lwt
 
-  Lwt.return
-  @@ Lwt_stream.filter_map
-       (function
-         | Incoming_message.Msg msg
-         (* Is it enough to check a message's SID? *)
-           when msg.sid = sid ->
-             Some msg
-         | _ -> None)
-       client.incoming_messages
+  (* auto unsubscribe *)
+  Lwt_switch.add_hook switch (fun () -> unsub client sid);
+
+  let messages =
+    Lwt_stream.filter_map
+      (function
+        | Incoming_message.MSG msg
+        (* Is it enough to check a message's SID? *)
+          when msg.sid = sid ->
+            Some msg
+        | _ -> None)
+      client.incoming_messages
+  in
+
+  Lwt.return Subscription.{ sid; subject; messages }
 
 (* TODO: make drain method, unsub all subscribers  *)

@@ -1,8 +1,39 @@
 (** NATS message. *)
 
 module Incoming = struct
-  (* TODO: make type for INFO *)
-  type t = Info of Yojson.Safe.t | Msg of msg | Ping | Pong | OK | ERR of err
+  open Ppx_yojson_conv_lib.Yojson_conv
+
+  module INFO = struct
+    type t = {
+      server_id : string;
+      server_name : string;
+      version : string;
+      go : string;
+      host : string;
+      port : int;
+      headers : bool;
+      max_payload : int;
+      proto : int;
+      client_id : int option; [@default None] (* uint64 brr *)
+      auth_required : bool; [@default false]
+      tls_required : bool; [@default false]
+      tls_verify : bool; [@default false]
+      tls_available : bool; [@default false]
+      connect_urls : string list; [@default []]
+      ws_connect_urls : string list; [@default []]
+      ldm : bool; [@default false]
+      git_commit : string option; [@default None]
+      jetstream : bool; [@default false]
+      ip : string option; [@default None]
+      client_ip : string option; [@default None]
+      nonce : string option; [@default None]
+      cluster : string option; [@default None]
+      domain : string option; [@default None]
+    }
+    [@@deriving yojson] [@@yojson.allow_extra_fields]
+  end
+
+  type t = INFO of INFO.t | MSG of msg | PING | PONG | OK | ERR of err
 
   and msg = {
     subject : string;
@@ -20,10 +51,12 @@ module Incoming = struct
       payload.size payload.contents
 
   let pp fmt = function
-    | Info json -> Format.fprintf fmt "INFO %a" Yojson.Safe.pp json
-    | Msg msg -> pp_msg fmt msg
-    | Ping -> Format.fprintf fmt "PING"
-    | Pong -> Format.fprintf fmt "PONG"
+    | INFO info ->
+        Format.fprintf fmt "INFO %s"
+          (INFO.yojson_of_t info |> Yojson.Safe.to_string)
+    | MSG msg -> pp_msg fmt msg
+    | PING -> Format.fprintf fmt "PING"
+    | PONG -> Format.fprintf fmt "PONG"
     | OK -> Format.fprintf fmt "+OK"
     | ERR e -> Format.fprintf fmt "+ERR '%s'" e
 
@@ -36,7 +69,8 @@ module Incoming = struct
     (** @raises Yojson.Json_error  *)
     let info_of_line line =
       (* INFO {"option_name":option_value,...}␍␊ *)
-      Scanf.sscanf line "INFO %s" (fun s -> Yojson.Safe.from_string s)
+      Scanf.sscanf line "INFO %s" (fun s ->
+          Yojson.Safe.from_string s |> INFO.t_of_yojson)
 
     let msg_of_line line =
       (* MSG <subject> <sid> [reply-to] <#bytes>␍␊[payload]␍␊ *)
@@ -68,34 +102,26 @@ module Incoming = struct
 
     (** @raises Invalid_argument *)
     let of_line = function
-      | "PING" -> Ping
-      | "PONG" -> Pong
+      | "PING" -> PING
+      | "PONG" -> PONG
       | "+OK" -> OK
       | line when String.starts_with ~prefix:"-ERR" line ->
           ERR (err_of_line line)
       | line when String.starts_with ~prefix:"INFO" line ->
-          Info (info_of_line line)
+          INFO (info_of_line line)
       | line when String.starts_with ~prefix:"MSG" line ->
-          Msg (msg_of_line line)
+          MSG (msg_of_line line)
       | _ -> raise (Invalid_argument "incoming message line")
   end
 end
 
 (** Initial message. *)
 module Initial = struct
-  type t = { verbose : bool; pedantic : bool; tls_required : bool; echo : bool }
-  (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
+  open Ppx_yojson_conv_lib.Yojson_conv
 
-  (* TODO: for encoding/decoding JSON should use [ppx_deriving_yojson] preprocessor. *)
-  let to_yojson t : Yojson.Safe.t =
-    `Assoc
-      [
-        ("verbose", `Bool t.verbose);
-        ("pedantic", `Bool t.pedantic);
-        ("tls_required", `Bool t.tls_required);
-        ("echo", `Bool t.echo);
-        ("lang", `String "ocaml");
-      ]
+  type t = { verbose : bool; pedantic : bool; tls_required : bool; echo : bool }
+  [@@deriving yojson] [@@yojson.allow_extra_fields]
+  (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
 
   let default =
     { verbose = false; pedantic = false; tls_required = false; echo = false }

@@ -54,13 +54,13 @@ let receive conn =
   let m = Incoming_message.Parser.of_line line in
 
   match m with
-  | Incoming_message.Msg msg ->
+  | Incoming_message.MSG msg ->
       (* read payload *)
       let%lwt contents = Lwt_io.read ~count:msg.payload.size conn.ic in
       let%lwt _ = Lwt_io.read ~count:2 conn.ic in
 
       Lwt.return
-      @@ Incoming_message.Msg
+      @@ Incoming_message.MSG
            { msg with payload = { msg.payload with contents } }
   | m -> Lwt.return m
 
@@ -85,6 +85,10 @@ module Send = struct
     writelnf conn.oc "SUB %s%s %s" subject
       (Option.fold ~none:"" ~some:(Printf.sprintf " %s") queue_group)
       sid
+
+  let unsub conn ?max_msgs (sid : Sid.t) =
+    writelnf conn.oc "UNSUB %s%s" sid
+      (Option.fold max_msgs ~none:"" ~some:(Printf.sprintf " %d"))
 
   let connect ~json conn =
     (* NOTE: Yojson.Safe.pp gives a bad result.

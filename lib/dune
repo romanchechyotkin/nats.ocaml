@@ -3,4 +3,4 @@
  (public_name nats-client)
  (libraries lwt.unix yojson)
  (preprocess
-  (pps lwt_ppx)))
+  (pps lwt_ppx ppx_yojson_conv)))

@@ -23,36 +23,47 @@ $ opam pin nats-client-lwt.dev https://github.com/romanchechyotkin/nats.ocaml.gi
 ### Simple echo example 
 
 This example shows how to publish to a subject and handle its messages. 
-Take it from [`examples/simple.ml`](./examples/simple.ml).
 
 ```ocaml
-let () =
-  Lwt_main.run @@ 
+open Lwt.Infix
+
+let main =
   (* Create a switch for automatic dispose resources. *)
   Lwt_switch.with_switch @@ fun switch ->
-
+  
   (* Connect to a NATS server by address 127.0.0.1:4222 with ECHO flag. *)
   let%lwt client =
     Nats_client_lwt.connect ~switch ~settings:[ `Echo ]
       (Uri.of_string "tcp://127.0.0.1:4222")
   in
 
-  (* Subscribe to HELLO subject. *)
-  let%lwt hello_subject = Nats_client_lwt.sub client ~subject:"HELLO" () in
+  (* Publish 'hello' message to greet.joe subject. *)
+  Nats_client_lwt.pub client ~subject:"greet.joe" "hello";%lwt
 
-  (* Handle incoming HELLO subject messages. *)
-  Nats_client_lwt.Subscription.handle hello_subject (fun msg ->
-      Lwt_io.printf "HELLO: %s\n" msg.payload.contents);
+  (* Subscribe to greet.* subject. *)
+  let%lwt subscription =
+    Nats_client_lwt.sub ~switch client ~subject:"greet.*" ()
+  in
 
-  (* Send "Hello World" message to HELLO subject. *)
-  Nats_client_lwt.pub client ~subject:"HELLO" "Hello World";%lwt
+  (* Publishes 'hello' message to three subjects. *)
+  Lwt_list.iter_p
+    (fun subject -> Nats_client_lwt.pub client ~subject "hello")
+    [ "greet.sue"; "greet.bob"; "greet.pam" ];%lwt
 
-  Lwt_unix.sleep 0.1
+  (* Handle first three incoming messages to the greet.* subject. *)
+  Lwt_stream.nget 3 subscription.messages
+  >>= Lwt_list.iter_s (fun (message : Nats_client.Incoming_message.msg) ->
+          Lwt_io.printlf "'%s' received on %s" message.payload.contents
+            message.subject)
+
+let () = Lwt_main.run main
 ```
+
+Take it from [`examples/natsbyexample/publish_subscribe.ml`](./examples/natsbyexample/publish_subscribe.ml).
 
 ```console
 $ docker start -a nats-server
-$ dune exec ./examples/simple.exe
+$ dune exec ./examples/natsbyexample/publish_subscribe.exe
 ```
 
 ## References
