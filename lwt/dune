@@ -1,6 +1,6 @@
 (library
  (name nats_client_lwt)
  (public_name nats-client-lwt)
- (libraries nats-client uri)
+ (libraries lwt.unix nats-client uri)
  (preprocess
   (pps lwt_ppx)))
