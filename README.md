@@ -12,6 +12,8 @@
 
 ## Packages
 
+The project provides several packages with different implementations for any contexts. 
+
 | Package           | Description                                   | Require OCaml |
 |-------------------|-----------------------------------------------|---------------|
 | `nats-client`     | implementation independent protocol abstracts | >= 4.14 (LTS) |
