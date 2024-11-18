@@ -75,7 +75,7 @@ module Send = struct
   let pong = writeln' "PING"
   let ping = writeln' "PONG"
 
-  let pub ~subject ~reply_to ~payload conn =
+  let pub ~subject ?reply_to ~payload conn =
     writelnf conn.oc "PUB %s%s %d" subject
       (Option.fold ~none:"" ~some:(Printf.sprintf " %s") reply_to)
       (String.length payload);%lwt

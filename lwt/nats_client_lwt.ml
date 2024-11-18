@@ -57,7 +57,7 @@ let close client = Connection.close client.connection
 
 (** [pub client ~subject ?reply_to payload] publish a message. *)
 let pub client ~subject ?reply_to payload =
-  Connection.Send.pub ~subject ~reply_to ~payload client.connection
+  Connection.Send.pub ~subject ?reply_to ~payload client.connection
 
 (** [unsub client ?max_msgs sid] unsubscribe from subject. *)
 let unsub client ?max_msgs sid =
