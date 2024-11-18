@@ -24,6 +24,7 @@
    (>= 4.14))
   dune
   yojson
+  ppx_deriving
   ppx_yojson_conv
   (alcotest :with-test))
  (tags (nats)))
