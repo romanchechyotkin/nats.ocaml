@@ -10,12 +10,20 @@
 > [!WARNING]
 > In active development! You can view the progress [here](https://github.com/users/romanchechyotkin/projects/1).
 
-## Usage
+## Packages
+
+| Package           | Description                                   | Require OCaml |
+|-------------------|-----------------------------------------------|---------------|
+| `nats-client`     | implementation independent protocol abstracts | >= 4.14 (LTS) |
+| `nats-client-lwt` | `lwt.unix`-based client implementation        |               |
+
+## Quick start
 
 ### Installation 
 
-Currently only a development version is available. You can [pin][opam-pin]
-it using the [OPAM] package manager. 
+Currently only a development version is available. 
+You can [pin][opam-pin] it using the [OPAM] package manager. 
+
 ```console
 $ opam pin nats-client-lwt.dev https://github.com/romanchechyotkin/nats.ocaml.git
 ```
@@ -71,6 +79,8 @@ $ dune exec ./examples/natsbyexample/publish_subscribe.exe
 'hello' received on greet.bob
 'hello' received on greet.pam
 ```
+
+See more examples at [`examples/`](./examples/) directory.
 
 ## References
 

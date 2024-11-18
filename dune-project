@@ -20,7 +20,8 @@
  (synopsis "NATS client")
  (description "OCaml client for NATS, the cloud native messaging system")
  (depends
-  ocaml
+  (ocaml
+   (>= 4.14))
   dune
   yojson
   ppx_yojson_conv
@@ -31,7 +32,8 @@
  (name nats-client-lwt)
  (synopsis "NATS client based on Lwt library")
  (depends
-  ocaml
+  (ocaml
+   (>= 4.14))
   lwt
   lwt_ppx
   uri

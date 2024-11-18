@@ -9,7 +9,7 @@ homepage: "https://github.com/romanchechyotkin/nats.ocaml"
 bug-reports: "https://github.com/romanchechyotkin/nats.ocaml/issues"
 depends: [
   "dune" {>= "3.16"}
-  "ocaml"
+  "ocaml" {>= "4.14"}
   "lwt"
   "lwt_ppx"
   "uri"
