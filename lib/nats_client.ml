@@ -1,3 +1,3 @@
 module Incoming_message = Message.Incoming
-module Initial_message = Message.Initial
+module Connect_message = Message.Connect
 module Sid = Sid

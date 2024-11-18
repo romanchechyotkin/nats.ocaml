@@ -8,13 +8,13 @@ type client = {
   incoming_messages : Incoming_message.t Lwt_stream.t;
 }
 
-let send_initialize_message client (message : Initial_message.t) =
+let send_initialize_message client (message : Connect_message.t) =
   (* I think the fucking verbose mode should be ignored.
      This is the most stupid performance overhead. *)
   Connection.Send.with_verbose ~verbose:message.verbose client.connection
   @@ fun () ->
   Connection.Send.connect
-    ~json:(Initial_message.yojson_of_t message)
+    ~json:(Connect_message.yojson_of_t message)
     client.connection
 
 (** Connect to a NATS server using the [uri] address. 
@@ -47,7 +47,7 @@ let connect ?switch ?settings uri =
 
   (match settings with
   | Some settings ->
-      send_initialize_message client (Initial_message.of_poly_variants settings)
+      send_initialize_message client (Connect_message.of_poly_variants settings)
   | None -> Lwt.return_unit);%lwt
 
   Lwt.return client

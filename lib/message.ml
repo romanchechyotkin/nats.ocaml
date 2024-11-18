@@ -1,8 +1,7 @@
+open Ppx_yojson_conv_lib.Yojson_conv
 (** NATS message. *)
 
 module Incoming = struct
-  open Ppx_yojson_conv_lib.Yojson_conv
-
   module INFO = struct
     type t = {
       server_id : string;
@@ -115,21 +114,41 @@ module Incoming = struct
   end
 end
 
-(** Initial message. *)
-module Initial = struct
-  open Ppx_yojson_conv_lib.Yojson_conv
-
-  type t = { verbose : bool; pedantic : bool; tls_required : bool; echo : bool }
-  [@@deriving yojson] [@@yojson.allow_extra_fields]
+(** CONNECT message. *)
+module Connect = struct
+  type t = {
+    verbose : bool; [@default false]
+    pedantic : bool; [@default false]
+    tls_required : bool; [@default false]
+    auth_token : string option; [@default None]
+    user : string option; [@default None]
+    pass : string option; [@default None]
+    name : string option; [@default None]
+    lang : string; [@default "ocaml"]
+    version : string; [@default "0.2"]
+    protocol : int; [@default 0]
+    echo : bool; [@default false]
+    sig' : string option; [@default None] [@key "sig"]
+    jwt : string option; [@default None]
+    no_responders : bool; [@default false]
+    headers : bool; [@default false]
+    nkey : string option; [@default None]
+  }
+  [@@deriving yojson_of, make] [@@yojson.allow_extra_fields]
   (** Protocol. https://docs.nats.io/reference/reference-protocols/nats-protocol#syntax-1 *)
-
-  let default =
-    { verbose = false; pedantic = false; tls_required = false; echo = false }
 
   let of_poly_variants v =
     List.fold_left
       (fun m -> function
         | `Echo -> { m with echo = true }
+        | `Pedantic -> { m with pedantic = true }
+        | `Tls_required -> failwith "nats.ocaml now now supports TLS"
+        | `Auth_token token -> { m with auth_token = Some token }
+        | `User user -> { m with user = Some user }
+        | `Pass pass -> { m with pass = Some pass }
+        | `Protocol n -> { m with protocol = n }
+        | `Jwt jwt -> { m with jwt = Some jwt }
+        | `Sig sig' -> { m with sig' = Some sig' }
         | `Verbose -> { m with verbose = true })
-      default v
+      (make ()) v
 end
