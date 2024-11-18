@@ -9,6 +9,19 @@
 
 > [!WARNING]
 > In active development! You can view the progress [here](https://github.com/users/romanchechyotkin/projects/1).
+> 
+> Basics
+> - [x] CONNECT 
+> - [x] INFO 
+> - [x] PUB
+> - [ ] HPUB
+> - [x] SUB/UNSUB
+> - [x] MSG 
+> - [x] PING/PONG
+> - [x] OK/ERR
+>
+> Features
+> - [ ] Drain mechanism 
 
 ## Packages
 
