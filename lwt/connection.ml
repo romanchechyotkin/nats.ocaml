@@ -20,7 +20,9 @@ exception Err_response of string
 let create ?switch ~host ~port () =
   try%lwt
     let%lwt ic, oc =
-      Lwt_io.open_connection @@ ADDR_INET (inet_addr_of_string host, port)
+      match%lwt Lwt_unix.getaddrinfo host (string_of_int port) [] with
+      | [] -> raise Connection_refused
+      | addr :: _ -> Lwt_io.open_connection addr.ai_addr
     in
 
     (* Automatic close socket on switch destroy. *)
