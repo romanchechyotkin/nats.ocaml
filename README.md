@@ -105,7 +105,7 @@ See more examples at [`examples/`](./examples/) directory.
 - Request-Reply
 - [JSON for Message Payloads](./examples/natsbyexample/json_for_message_payloads.ml)
 - Protobuf for Message Payloads
-- Concurrent Message Processing
+- [Concurrent Message Processing](./examples/natsbyexample/concurrent_message_processing.ml)
 - Iterating Over Multiple Subscriptions
 
 ## References
