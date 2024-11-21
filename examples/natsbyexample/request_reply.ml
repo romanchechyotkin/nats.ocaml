@@ -1,3 +1,5 @@
+(* TODO: not ready yet! *)
+
 let main =
   Lwt_switch.with_switch @@ fun switch ->
   let%lwt client =

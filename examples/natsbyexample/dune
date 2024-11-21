@@ -1,5 +1,5 @@
 (executables
- (names publish_subscribe request_reply)
- (libraries nats-client-lwt lwt)
+ (names publish_subscribe request_reply json_for_message_payloads)
+ (libraries nats-client-lwt lwt yojson)
  (preprocess
   (pps lwt_ppx)))

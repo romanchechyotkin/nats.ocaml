@@ -44,6 +44,8 @@ module Incoming = struct
   and payload = { size : int; contents : string }
   and err = string
 
+  let payload { contents; _ } = contents
+
   let pp_msg fmt { subject; sid; reply_to; payload } =
     Format.fprintf fmt "MSG %s %s %s %d %s" subject sid
       (Option.value ~default:"?" reply_to)
