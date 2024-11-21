@@ -95,7 +95,18 @@ $ dune exec ./examples/natsbyexample/publish_subscribe.exe
 'hello' received on greet.pam
 ```
 
+### By Examples
+
 See more examples at [`examples/`](./examples/) directory.
+
+**Messaging**
+
+- [Core Publish-Subscribe](./examples/natsbyexample/publish_subscribe.ml)
+- Request-Reply
+- [JSON for Message Payloads](./examples/natsbyexample/json_for_message_payloads.ml)
+- Protobuf for Message Payloads
+- Concurrent Message Processing
+- Iterating Over Multiple Subscriptions
 
 ## References
 
