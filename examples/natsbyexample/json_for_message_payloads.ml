@@ -16,8 +16,8 @@ let main =
   Nats_client_lwt.pub client ~subject:"foo" "not json";%lwt
 
   Lwt_stream.nget 2 subscription.messages
-  >>= Lwt_list.iter_s (fun (request : Nats_client.Incoming_message.msg) ->
-          let payload = Nats_client.Incoming_message.payload request.payload in
+  >>= Lwt_list.iter_s (fun (request : Nats_client.Protocol.msg) ->
+          let payload = request.payload in
           match Yojson.Safe.from_string payload with
           | `Assoc [ ("foo", `String foo); ("bar", `Int bar) ] ->
               Lwt_io.printlf "received valid JSON payload: foo=%s bar=%d" foo

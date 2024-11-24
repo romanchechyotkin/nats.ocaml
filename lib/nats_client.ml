@@ -1,3 +1,2 @@
-module Incoming_message = Message.Incoming
-module Connect_message = Message.Connect
+module Protocol = Protocol
 module Sid = Sid

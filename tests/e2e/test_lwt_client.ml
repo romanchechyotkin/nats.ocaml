@@ -20,7 +20,7 @@ let connect_test _ () =
   let%lwt client = Nats_client_lwt.connect default_uri in
 
   Nats_client_lwt.send_initialize_message client
-  @@ Nats_client.Connect_message.make ~echo:true ~verbose:true ();%lwt
+  @@ Nats_client.Protocol.Connection_message.make ~echo:true ~verbose:true ();%lwt
 
   Lwt.return ()
 
@@ -28,7 +28,7 @@ let connect_test_with_verbose_false _ () =
   let%lwt client = Nats_client_lwt.connect default_uri in
 
   Nats_client_lwt.send_initialize_message client
-  @@ Nats_client.Connect_message.make ~echo:true ~verbose:false ();%lwt
+  @@ Nats_client.Protocol.Connection_message.make ~echo:true ~verbose:false ();%lwt
 
   Lwt.return ()
 

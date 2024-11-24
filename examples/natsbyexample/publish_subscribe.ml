@@ -24,8 +24,7 @@ let main =
 
   (* Handle first three incoming messages to the greet.* subject. *)
   Lwt_stream.nget 3 subscription.messages
-  >>= Lwt_list.iter_s (fun (message : Nats_client.Incoming_message.msg) ->
-          Lwt_io.printlf "'%s' received on %s" message.payload.contents
-            message.subject)
+  >>= Lwt_list.iter_s (fun (message : Nats_client.Protocol.msg) ->
+          Lwt_io.printlf "'%s' received on %s" message.payload message.subject)
 
 let () = Lwt_main.run main

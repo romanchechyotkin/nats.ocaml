@@ -4,17 +4,17 @@ module Connection = Connection
 
 type client = {
   connection : Connection.t;
-  info : Incoming_message.INFO.t;
-  incoming_messages : Incoming_message.t Lwt_stream.t;
+  info : Protocol.info;
+  incoming_messages : Protocol.message Lwt_stream.t;
 }
 
-let send_initialize_message client (message : Connect_message.t) =
+let send_initialize_message client (message : Protocol.connect) =
   (* I think the fucking verbose mode should be ignored.
      This is the most stupid performance overhead. *)
   Connection.Send.with_verbose ~verbose:message.verbose client.connection
   @@ fun () ->
   Connection.Send.connect
-    ~json:(Connect_message.yojson_of_t message)
+    ~json:(Protocol.Connection_message.yojson_of_t message)
     client.connection
 
 (** Connect to a NATS server using the [uri] address. 
@@ -33,7 +33,7 @@ let connect ?switch ?settings uri =
   let%lwt connection = Connection.create ?switch ~host ~port () in
   let%lwt info =
     match%lwt Connection.receive connection with
-    | Incoming_message.INFO info -> Lwt.return info
+    | `INFO info -> Lwt.return info
     | _ -> raise @@ Connection.Invalid_response "INFO message"
   in
 
@@ -47,7 +47,8 @@ let connect ?switch ?settings uri =
 
   (match settings with
   | Some settings ->
-      send_initialize_message client (Connect_message.of_poly_variants settings)
+      send_initialize_message client
+        (Protocol.Connection_message.of_poly_variants settings)
   | None -> Lwt.return_unit);%lwt
 
   Lwt.return client
@@ -74,7 +75,7 @@ let sub ?switch client ~subject ?(sid : Sid.t option) () =
   let messages =
     Lwt_stream.filter_map
       (function
-        | Incoming_message.MSG msg
+        | `MSG (msg : Protocol.msg)
         (* Is it enough to check a message's SID? *)
           when msg.sid = sid ->
             Some msg
@@ -96,4 +97,4 @@ let request client ~subject payload =
   pub client ~subject ~reply_to:"for-request-mechanism" payload;%lwt
 
   let%lwt incoming_message = Lwt_stream.next subscription.messages in
-  Lwt.return incoming_message.payload.contents
+  Lwt.return incoming_message.payload

@@ -1,11 +1,7 @@
 open Nats_client
 (** Utils for handle subscriptions. *)
 
-type t = {
-  sid : Sid.t;
-  subject : string;
-  messages : Incoming_message.msg Lwt_stream.t;
-}
+type t = { sid : Sid.t; subject : string; messages : Protocol.msg Lwt_stream.t }
 
 let handle_stream stream f =
   Lwt.dont_wait

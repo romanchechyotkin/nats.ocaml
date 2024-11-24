@@ -14,7 +14,7 @@ let () =
 
   (* Handle incoming HELLO subject messages. *)
   Nats_client_lwt.Subscription.handle hello_subscr (fun msg ->
-      Lwt_io.printf "HELLO: %s\n" msg.payload.contents);
+      Lwt_io.printf "HELLO: %s\n" msg.payload);
 
   (* Send "Hello World" message to HELLO subject. *)
   Nats_client_lwt.pub client ~subject:"HELLO" "Hello World";%lwt

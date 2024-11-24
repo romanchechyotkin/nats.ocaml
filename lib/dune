@@ -3,4 +3,4 @@
  (public_name nats-client)
  (libraries yojson)
  (preprocess
-  (pps lwt_ppx ppx_yojson_conv ppx_deriving.make)))
+  (pps lwt_ppx ppx_yojson_conv ppx_deriving.make ppx_deriving.show)))

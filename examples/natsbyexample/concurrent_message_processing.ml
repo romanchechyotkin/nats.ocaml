@@ -12,9 +12,9 @@ let main =
     |> Nats_client_lwt.pub client ~subject:"greet.joe"
   done;%lwt
 
-  let handle_requests (request : Nats_client.Incoming_message.msg) =
+  let handle_requests (request : Nats_client.Protocol.msg) =
     Lwt_unix.sleep 1.0;%lwt
-    Lwt_io.printlf "received message: %s" request.payload.contents
+    Lwt_io.printlf "received message: %s" request.payload
   in
 
   Lwt.dont_wait

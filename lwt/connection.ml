@@ -38,20 +38,18 @@ let close { oc; _ } =
 
 exception Invalid_response of string
 
-let receive conn =
+let receive conn : Protocol.message Lwt.t =
   let%lwt line = Lwt_io.read_line conn.ic in
-  let m = Incoming_message.Parser.of_line line in
+  let m = Protocol.message_of_line line in
 
   match m with
-  | Incoming_message.MSG msg ->
+  | `MSG (size, incomplete_message) ->
       (* read payload *)
-      let%lwt contents = Lwt_io.read ~count:msg.payload.size conn.ic in
+      let%lwt payload = Lwt_io.read ~count:size conn.ic in
       let%lwt _ = Lwt_io.read ~count:2 conn.ic in
 
-      Lwt.return
-      @@ Incoming_message.MSG
-           { msg with payload = { msg.payload with contents } }
-  | m -> Lwt.return m
+      Lwt.return @@ `MSG (incomplete_message payload)
+  | m -> Lwt.return @@ Obj.magic m
 
 module Send = struct
   let writelnf oc pat = Lwt_io.fprintf oc (pat ^^ "\r\n")
@@ -92,8 +90,8 @@ module Send = struct
     f ();%lwt
     if verbose then
       match%lwt receive conn with
-      | Incoming_message.OK -> Lwt.return_unit
-      | Incoming_message.ERR msg -> raise @@ Err_response msg
+      | `OK -> Lwt.return_unit
+      | `ERR msg -> raise @@ Err_response msg
       | _ -> raise @@ Invalid_response "expected +OK or -ERR"
     else Lwt.return_unit
 end

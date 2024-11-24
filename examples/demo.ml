@@ -6,25 +6,24 @@ let main () =
   in
 
   Format.printf "info %s\n"
-    (Nats_client.Incoming_message.INFO.yojson_of_t client.info
+    (Nats_client.Protocol.Information_message.yojson_of_t client.info
     |> Yojson.Safe.to_string);
 
   Nats_client_lwt.Subscription.handle_stream client.incoming_messages
     (fun msg ->
-      Lwt_fmt.printf "LOG: %a\n" Nats_client.Incoming_message.pp msg;%lwt
+      Lwt_fmt.printf "LOG: %a\n" Nats_client.Protocol.pp_message msg;%lwt
       Lwt_fmt.flush Lwt_fmt.stdout);
 
   let%lwt foo_subj = Nats_client_lwt.sub client ~subject:"FOO" () in
 
   ( Nats_client_lwt.Subscription.handle foo_subj @@ fun msg ->
-    Lwt_fmt.printf "HANDLER\n\tFOO: %a\n" Nats_client.Incoming_message.pp_msg
-      msg );
+    Lwt_fmt.printf "HANDLER\n\tFOO: %a\n" Nats_client.Protocol.Message.pp msg );
 
   let%lwt front_subj = Nats_client_lwt.sub client ~subject:"FRONT.*" () in
 
   ( Nats_client_lwt.Subscription.handle front_subj @@ fun msg ->
-    Lwt_fmt.printf "HANDLER\n\tFRONT.*: %a\n"
-      Nats_client.Incoming_message.pp_msg msg );
+    Lwt_fmt.printf "HANDLER\n\tFRONT.*: %a\n" Nats_client.Protocol.Message.pp
+      msg );
 
   Nats_client_lwt.pub client ~subject:"FOO" "HELLO NATS!";%lwt
 
