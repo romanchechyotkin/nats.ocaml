@@ -12,7 +12,7 @@ let handle_stream stream f =
     (fun () -> Lwt_stream.iter_s f stream)
     (function
       (* Ignore the closed socket error. *)
-      | Unix.Unix_error (Unix.EBADF, "check_descriptor", "") -> ()
+      | Lwt_io.Channel_closed _ -> ()
       (* Otherwise, throw the exception above. *)
       | e -> raise e)
 

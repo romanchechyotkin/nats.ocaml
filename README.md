@@ -22,6 +22,7 @@
 >
 > Features
 > - [ ] Drain mechanism 
+> - [x] Request mechanism 
 
 ## Packages
 
@@ -102,7 +103,7 @@ See more examples at [`examples/`](./examples/) directory.
 **Messaging**
 
 - [Core Publish-Subscribe](./examples/natsbyexample/publish_subscribe.ml)
-- Request-Reply
+- [Request-Reply](./examples/natsbyexample/request_reply.ml)
 - [JSON for Message Payloads](./examples/natsbyexample/json_for_message_payloads.ml)
 - Protobuf for Message Payloads
 - [Concurrent Message Processing](./examples/natsbyexample/concurrent_message_processing.ml)

@@ -85,3 +85,15 @@ let sub ?switch client ~subject ?(sid : Sid.t option) () =
   Lwt.return Subscription.{ sid; subject; messages }
 
 (* TODO: make drain method, unsub all subscribers  *)
+
+let request client ~subject payload =
+  Lwt_switch.with_switch @@ fun switch ->
+  let%lwt subscription =
+    (* TODO: unique subject for subscription *)
+    sub ~switch client ~subject:"for-request-mechanism" ()
+  in
+
+  pub client ~subject ~reply_to:"for-request-mechanism" payload;%lwt
+
+  let%lwt incoming_message = Lwt_stream.next subscription.messages in
+  Lwt.return incoming_message.payload.contents
