@@ -65,7 +65,7 @@ let unsub client ?max_msgs sid =
   Connection.Send.unsub client.connection ?max_msgs sid
 
 (** [sub client ~subject ?sid ()] subscribe on the subject and get stream. *)
-let sub ?switch client ~subject ?(sid : Sid.t option) () =
+let sub ?switch client ~subject ?sid () =
   let sid = Option.value ~default:(Sid.create 9) sid in
   Connection.Send.sub ~subject ~sid ~queue_group:None client.connection;%lwt
 
@@ -88,13 +88,13 @@ let sub ?switch client ~subject ?(sid : Sid.t option) () =
 (* TODO: make drain method, unsub all subscribers  *)
 
 let request client ~subject payload =
-  Lwt_switch.with_switch @@ fun switch ->
-  let%lwt subscription =
-    (* TODO: unique subject for subscription *)
-    sub ~switch client ~subject:"for-request-mechanism" ()
-  in
+  (* Inbox for replies. *)
+  let inbox = Printf.sprintf "_INBOX.%s" @@ Nats_client.Sid.create 9 in
 
-  pub client ~subject ~reply_to:"for-request-mechanism" payload;%lwt
+  Lwt_switch.with_switch @@ fun switch ->
+  let%lwt subscription = sub ~switch client ~subject:inbox () in
+
+  pub client ~subject ~reply_to:inbox payload;%lwt
 
   let%lwt incoming_message = Lwt_stream.next subscription.messages in
   Lwt.return incoming_message.payload
