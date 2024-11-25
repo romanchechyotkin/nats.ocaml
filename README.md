@@ -15,6 +15,7 @@
 > - [x] INFO 
 > - [x] PUB
 > - [ ] HPUB
+> - [ ] HMSG
 > - [x] SUB/UNSUB
 > - [x] MSG 
 > - [x] PING/PONG

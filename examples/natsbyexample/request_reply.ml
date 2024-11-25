@@ -1,5 +1,3 @@
-open Lwt.Infix
-
 let main =
   Lwt_switch.with_switch @@ fun switch ->
   let%lwt client =
@@ -26,9 +24,15 @@ let main =
   let%lwt response =
     Lwt.pick
       [
-        (Lwt_unix.sleep 5.0 >>= fun () -> Lwt.fail_with "timeout");
+        Lwt_unix.timeout 1.;
         Nats_client_lwt.request client ~subject:"greet.bob" "";
       ]
+  in
+  Lwt_io.printlf "response: %s;" response;%lwt
+
+  let%lwt response =
+    Nats_client_lwt.request_with_timeout client ~subject:"greet.tom"
+      ~timeout:0.5 ""
   in
   Lwt_io.printlf "response: %s;" response;%lwt
 

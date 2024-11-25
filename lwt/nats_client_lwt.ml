@@ -98,3 +98,6 @@ let request client ~subject payload =
 
   let%lwt incoming_message = Lwt_stream.next subscription.messages in
   Lwt.return incoming_message.payload
+
+let request_with_timeout client ~subject ~timeout payload =
+  Lwt.pick [ Lwt_unix.timeout timeout; request client ~subject payload ]
