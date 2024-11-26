@@ -22,18 +22,10 @@ let main =
   Lwt_io.printlf "response: %s;" response;%lwt
 
   let%lwt response =
-    Lwt.pick
-      [
-        Lwt_unix.timeout 1.;
-        Nats_client_lwt.request client ~subject:"greet.bob" "";
-      ]
+    Lwt_unix.with_timeout 1. @@ fun () ->
+    Nats_client_lwt.request client ~subject:"greet.bob" ""
   in
-  Lwt_io.printlf "response: %s;" response;%lwt
 
-  let%lwt response =
-    Nats_client_lwt.request_with_timeout client ~subject:"greet.tom"
-      ~timeout:0.5 ""
-  in
   Lwt_io.printlf "response: %s;" response;%lwt
 
   Lwt.return_unit

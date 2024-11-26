@@ -6,6 +6,7 @@ type client = {
   connection : Connection.t;
   info : Protocol.info;
   incoming_messages : Protocol.message Lwt_stream.t;
+  mutable inbox_prefix : string;
 }
 
 let send_initialize_message client (message : Protocol.connect) =
@@ -43,7 +44,7 @@ let connect ?switch ?settings uri =
         Lwt.return_some message)
   in
 
-  let client = { connection; info; incoming_messages } in
+  let client = { connection; info; incoming_messages; inbox_prefix = "" } in
 
   (match settings with
   | Some settings ->
@@ -87,9 +88,14 @@ let sub ?switch client ~subject ?sid () =
 
 (* TODO: make drain method, unsub all subscribers  *)
 
+let set_inbox_prefix client prefix = client.inbox_prefix <- prefix
+
 let request client ~subject payload =
-  (* Inbox for replies. *)
-  let inbox = Printf.sprintf "_INBOX.%s" @@ Nats_client.Sid.create 9 in
+  let inbox =
+    (* Collisions? It's needs unique prefix and SID! *)
+    let sid = client.inbox_prefix ^ Nats_client.Sid.create 9 in
+    Printf.sprintf "_INBOX.%s" sid
+  in
 
   Lwt_switch.with_switch @@ fun switch ->
   let%lwt subscription = sub ~switch client ~subject:inbox () in
@@ -98,6 +104,3 @@ let request client ~subject payload =
 
   let%lwt incoming_message = Lwt_stream.next subscription.messages in
   Lwt.return incoming_message.payload
-
-let request_with_timeout client ~subject ~timeout payload =
-  Lwt.pick [ Lwt_unix.timeout timeout; request client ~subject payload ]
